@@ -88,6 +88,19 @@ class WM_Checkout {
 	 * @return array
 	 */
 	public static function customize_checkout_fields( $fields ) {
+		unset( $fields['billing']['billing_state'] );
+
+		if ( isset( $fields['billing']['billing_postcode'] ) ) {
+			$fields['billing']['billing_postcode']['class']    = array( 'form-row-first' );
+			$fields['billing']['billing_postcode']['priority'] = 62;
+		}
+
+		if ( isset( $fields['billing']['billing_city'] ) ) {
+			$fields['billing']['billing_city']['class']    = array( 'form-row-last' );
+			$fields['billing']['billing_city']['clear']    = true;
+			$fields['billing']['billing_city']['priority'] = 63;
+		}
+
 		$fields['billing']['billing_vat'] = array(
 			'type'     => 'text',
 			'label'    => __( 'VAT / Tax Number', 'woodmak-b2b-core' ),

@@ -1,0 +1,353 @@
+@page {
+	margin-top: 8mm;
+	margin-bottom: 18mm;
+	margin-left: 10mm;
+	margin-right: 10mm;
+	footer: docFooter;
+}
+
+body {
+	background: #fff;
+	color: #111;
+	margin: 0;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 9pt;
+	line-height: 1.32;
+	overflow-wrap: anywhere;
+}
+
+h1, h2, h3, h4 {
+	font-weight: 700;
+	margin: 0;
+}
+
+h1 {
+	font-size: 16pt;
+}
+
+h3 {
+	font-size: 9pt;
+}
+
+p {
+	margin: 0;
+	padding: 0;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	border: 0;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+}
+
+th,
+td {
+	vertical-align: top;
+	text-align: left;
+}
+
+table.container {
+	width: 100%;
+}
+
+tr.no-borders,
+td.no-borders {
+	border: 0 !important;
+	padding: 0 !important;
+}
+
+td.notes-cell {
+	width: 56%;
+}
+
+td.totals-cell {
+	width: 44%;
+}
+
+.wm-head {
+	margin-bottom: 4.5mm;
+}
+
+.wm-head__logo {
+	width: 38%;
+	padding-right: 6mm;
+}
+
+.wm-head__logo .wm-logo-wrap {
+	margin-bottom: 1.8mm;
+}
+
+.wm-head__logo img {
+	max-height: 18mm;
+	max-width: 100%;
+	width: auto;
+}
+
+.wm-head__logo .shop-phone-number,
+.wm-head__logo .shop-email-address {
+	font-size: 8.4pt;
+	line-height: 1.08;
+	margin-top: 0.2mm;
+}
+
+.wm-head__shop {
+	width: 62%;
+	font-size: 8.6pt;
+	line-height: 1.14;
+	text-align: left;
+	padding-left: 8mm;
+}
+
+.wm-head__shop .shop-name {
+	font-size: 10pt;
+	margin-bottom: 0.15mm;
+}
+
+.wm-head__shop .shop-vat {
+	margin-bottom: 0.2mm;
+	text-align: left;
+}
+
+.wm-head__shop .shop-address {
+	text-align: left;
+}
+
+.wm-head__shop .shop-address .wm-address-line {
+	margin-top: 0.15mm;
+}
+
+.wm-head__shop .shop-address .wm-address-line--city-postcode {
+	white-space: nowrap;
+	overflow-wrap: normal;
+	word-break: keep-all;
+}
+
+.wm-head__shop .shop-extra-fields {
+	margin-top: 0.4mm;
+}
+
+.wm-head__shop .shop-extra-fields .shop-extra-field {
+	font-weight: 400;
+	line-height: 1.02;
+	margin-top: 0.05mm;
+}
+
+.wm-head__shop .shop-extra-fields .shop-extra-label {
+	font-weight: 700;
+}
+
+.wm-head__shop .shop-extra-fields .shop-extra-value {
+	font-weight: 400;
+}
+
+.document-type-label {
+	text-transform: uppercase;
+	font-size: 16pt;
+	margin: 0 0 4.5mm;
+}
+
+.wm-summary {
+	margin-bottom: 2.8mm;
+}
+
+.wm-summary__customer {
+	width: 58%;
+	padding-right: 5mm;
+}
+
+.wm-summary__customer h3 {
+	font-size: 8.5pt;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	margin-bottom: 0.55mm;
+}
+
+.wm-summary__customer .billing-email,
+.wm-summary__customer .billing-phone {
+	margin-top: 0.2mm;
+	line-height: 1.08;
+}
+
+.wm-address-block .wm-address-line {
+	margin-top: 0.15mm;
+	line-height: 1.08;
+}
+
+.wm-address-block .wm-address-line:first-child {
+	margin-top: 0;
+}
+
+.wm-summary__meta {
+	width: 42%;
+}
+
+.wm-meta-card {
+	border: 1px solid #d7d7d7;
+	table-layout: fixed;
+}
+
+.wm-meta-card th,
+.wm-meta-card td {
+	padding: 1.5mm 2mm;
+	border-bottom: 1px solid #ececec;
+	overflow-wrap: anywhere;
+}
+
+.wm-meta-card tr:last-child th,
+.wm-meta-card tr:last-child td {
+	border-bottom: 0;
+}
+
+.wm-meta-card th {
+	width: 44%;
+	font-weight: 600;
+	color: #333;
+	background: #fafafa;
+}
+
+.wm-meta-card .discount-amount {
+	display: inline-block;
+	margin-left: 1.5mm;
+}
+
+.wm-shipping {
+	margin: 0 0 5mm;
+}
+
+.wm-shipping__cell {
+	border: 1px solid #e4e4e4;
+	padding: 2mm 2.2mm;
+}
+
+.wm-shipping__cell h3 {
+	font-size: 8.5pt;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	margin-bottom: 1.2mm;
+}
+
+table.order-details,
+table.notes-totals {
+	width: 100%;
+	margin-bottom: 0;
+	page-break-before: avoid;
+}
+
+.order-details thead th {
+	background: #111;
+	color: #fff;
+	border: 1px solid #111;
+	padding: 0.9mm 1.3mm;
+	line-height: 1.05;
+	font-size: 8.3pt;
+}
+
+.order-details tbody {
+	border-bottom: 1px solid #cfcfcf;
+}
+
+.order-details td {
+	border-top: 1px solid #dfdfdf;
+	border-bottom: 1px solid #dfdfdf;
+	padding: 0.9mm 1.3mm;
+	line-height: 1.05;
+}
+
+.order-details .quantity,
+.order-details .price {
+	width: auto;
+}
+
+.order-details .line-number {
+	width: 10%;
+	text-align: center;
+}
+
+.order-details .product {
+	width: 50%;
+}
+
+.order-details .quantity {
+	width: 15%;
+}
+
+.order-details .price {
+	width: 25%;
+}
+
+.item-meta {
+	margin-top: 0.5mm;
+	font-size: 7.2pt;
+	line-height: 1.08;
+}
+
+.item-meta p {
+	margin-top: 0.2mm;
+}
+
+.document-notes,
+.customer-notes {
+	margin-top: 4mm;
+}
+
+table.totals {
+	margin-top: 0;
+	table-layout: fixed;
+}
+
+table.totals th,
+table.totals td {
+	border: 0;
+	border-top: 1px solid #d7d7d7;
+	border-bottom: 1px solid #d7d7d7;
+	padding: 1.4mm 2mm;
+}
+
+table.totals th.description,
+table.totals td.price {
+	width: 50%;
+}
+
+table.totals tr.order_total th,
+table.totals tr.order_total td {
+	border-top: 2px solid #111;
+	border-bottom: 2px solid #111;
+	font-weight: 700;
+}
+
+table.totals tr.payment_method {
+	display: none;
+}
+
+div.bottom-spacer {
+	clear: both;
+	height: 5mm;
+}
+
+#footer {
+	position: absolute;
+	bottom: -12mm;
+	left: 0;
+	right: 0;
+	height: 10mm;
+	text-align: center;
+	border-top: 0.1mm solid #b8b8b8;
+	padding-top: 1.6mm;
+	font-size: 7.6pt;
+}
+
+.rtl {
+	direction: rtl;
+}
+
+.pagenum:before {
+	content: counter(page);
+}
+
+.pagenum,
+.pagecount {
+	font-family: sans-serif;
+}
