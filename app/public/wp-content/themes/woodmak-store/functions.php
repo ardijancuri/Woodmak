@@ -48,18 +48,36 @@ function ws_enqueue_assets() {
 	$base_css_path = get_template_directory() . '/assets/css/base.css';
 	$shop_css_path = get_template_directory() . '/assets/css/shop.css';
 	$checkout_css_path = get_template_directory() . '/assets/css/checkout.css';
+	$account_css_path = get_template_directory() . '/assets/css/account.css';
 	$theme_js_path = get_template_directory() . '/assets/js/theme.js';
 	$base_css_ver = file_exists( $base_css_path ) ? (string) filemtime( $base_css_path ) : $version;
 	$shop_css_ver = file_exists( $shop_css_path ) ? (string) filemtime( $shop_css_path ) : $version;
 	$checkout_css_ver = file_exists( $checkout_css_path ) ? (string) filemtime( $checkout_css_path ) : $version;
+	$account_css_ver = file_exists( $account_css_path ) ? (string) filemtime( $account_css_path ) : $version;
 	$theme_js_ver = file_exists( $theme_js_path ) ? (string) filemtime( $theme_js_path ) : $version;
 	wp_enqueue_style( 'woodmak-store-fonts', 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap', array(), null );
 	wp_enqueue_style( 'woodmak-store-base', get_template_directory_uri() . '/assets/css/base.css', array( 'woodmak-store-fonts' ), $base_css_ver );
 	wp_enqueue_style( 'woodmak-store-shop', get_template_directory_uri() . '/assets/css/shop.css', array( 'woodmak-store-base' ), $shop_css_ver );
 	wp_enqueue_style( 'woodmak-store-checkout', get_template_directory_uri() . '/assets/css/checkout.css', array( 'woodmak-store-base' ), $checkout_css_ver );
+	if ( ws_is_account_context() ) {
+		wp_enqueue_style( 'woodmak-store-account', get_template_directory_uri() . '/assets/css/account.css', array( 'woodmak-store-base' ), $account_css_ver );
+	}
 	wp_enqueue_script( 'woodmak-store-theme', get_template_directory_uri() . '/assets/js/theme.js', array(), $theme_js_ver, true );
 
 	wp_add_inline_style( 'woodmak-store-base', ws_get_dynamic_theme_css() );
+}
+
+/**
+ * Check whether the current request is in account context.
+ *
+ * @return bool
+ */
+function ws_is_account_context() {
+	if ( function_exists( 'is_account_page' ) && is_account_page() ) {
+		return true;
+	}
+
+	return function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url();
 }
 
 add_filter( 'body_class', 'ws_add_body_classes' );
@@ -718,7 +736,22 @@ function ws_get_contrast_color( $hex_color ) {
 	return $luminance >= 140 ? '#111111' : '#ffffff';
 }
 
+add_action( 'init', 'ws_reorder_single_product_summary_price', 20 );
 add_action( 'woocommerce_single_product_summary', 'ws_render_product_specs', 25 );
+
+/**
+ * Move product price below product specifications in single-product summary.
+ *
+ * @return void
+ */
+function ws_reorder_single_product_summary_price() {
+	if ( ! function_exists( 'woocommerce_template_single_price' ) ) {
+		return;
+	}
+
+	remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_price', 10 );
+	add_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_price', 26 );
+}
 
 /**
  * Render dimensions and weight on single product page.
