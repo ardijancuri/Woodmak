@@ -1,0 +1,102 @@
+.ws-checkout-wrap {
+  border: 1px solid var(--wm-border);
+  background: #fff;
+  padding: 1rem;
+}
+
+.ws-checkout-columns {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1rem;
+}
+
+.ws-checkout-col {
+  border: 1px solid var(--wm-border);
+  padding: 0.9rem;
+  background: #fff;
+}
+
+.ws-checkout-col h3 {
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.95rem;
+}
+
+.ws-checkout-col--review {
+  background: #f9f9f9;
+}
+
+.role-b2b-wholesale .ws-checkout-col--review {
+  border-color: var(--wm-primary);
+}
+
+.role-b2b-wholesale .wm-checkout-note {
+  border-left: 4px solid var(--wm-primary);
+}
+
+.role-b2c .wm-checkout-note {
+  border-left: 4px solid #9a9a9a;
+}
+
+.wm-checkout-note {
+  margin-bottom: 0.8rem;
+  background: #fff;
+  border: 1px solid var(--wm-border);
+}
+
+.woocommerce form .form-row input.input-text,
+.woocommerce form .form-row textarea,
+.select2-container--default .select2-selection--single {
+  border: 1px solid var(--wm-border);
+}
+
+#add_payment_method #payment,
+.woocommerce-cart #payment,
+.woocommerce-checkout #payment {
+  background: #fff;
+  border: 1px solid var(--wm-border);
+}
+
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button,
+.woocommerce-checkout #payment #place_order,
+.wp-block-woocommerce-proceed-to-checkout-block .wc-block-cart__submit-button,
+.wp-block-woocommerce-checkout .wc-block-components-checkout-place-order-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.4rem;
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--wm-primary);
+  background: var(--wm-primary);
+  color: var(--wm-on-primary);
+  text-transform: uppercase;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.1;
+  box-shadow: none;
+}
+
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button:hover,
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button:focus,
+.woocommerce-checkout #payment #place_order:hover,
+.woocommerce-checkout #payment #place_order:focus,
+.wp-block-woocommerce-proceed-to-checkout-block .wc-block-cart__submit-button:hover,
+.wp-block-woocommerce-proceed-to-checkout-block .wc-block-cart__submit-button:focus,
+.wp-block-woocommerce-checkout .wc-block-components-checkout-place-order-button:hover,
+.wp-block-woocommerce-checkout .wc-block-components-checkout-place-order-button:focus {
+  border-color: var(--wm-primary-strong);
+  background: var(--wm-primary-strong);
+  color: var(--wm-on-primary);
+  box-shadow: none;
+}
+
+@media (max-width: 980px) {
+  .ws-checkout-columns {
+    grid-template-columns: 1fr;
+  }
+}

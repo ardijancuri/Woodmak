@@ -1,0 +1,33 @@
+# Ignore everything by default.
+/*
+
+# Keep repository metadata and documentation.
+!.gitignore
+!README.md
+!docs/
+!docs/**
+
+# Keep only custom WordPress code (theme + custom plugin).
+!app/
+app/*
+!app/public/
+app/public/*
+!app/public/wp-content/
+app/public/wp-content/*
+!app/public/wp-content/themes/
+app/public/wp-content/themes/*
+!app/public/wp-content/themes/woodmak-store/
+!app/public/wp-content/themes/woodmak-store/**
+!app/public/wp-content/plugins/
+app/public/wp-content/plugins/*
+!app/public/wp-content/plugins/woodmak-b2b-core/
+!app/public/wp-content/plugins/woodmak-b2b-core/**
+
+# Never track runtime/generated/sensitive files.
+app/public/wp-content/uploads/
+app/public/wp-config.php
+app/public/local-xdebuginfo.php
+logs/
+conf/
+.DS_Store
+Thumbs.db
