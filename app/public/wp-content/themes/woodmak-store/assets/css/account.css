@@ -1,25 +1,18 @@
 /* My Account page visual override aligned with Woodmak UI. */
-body.logged-in.woocommerce-account .ws-main article .woocommerce,
-body.logged-in.woocommerce-account .ws-main .wp-block-woocommerce-my-account .woocommerce {
+body.woocommerce-account .ws-my-account-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
 }
 
-body.logged-in.woocommerce-account .ws-main article .woocommerce > h2,
-body.logged-in.woocommerce-account .ws-main article .woocommerce > p:first-child,
-body.logged-in.woocommerce-account .ws-main .wp-block-woocommerce-my-account .woocommerce > h2,
-body.logged-in.woocommerce-account .ws-main .wp-block-woocommerce-my-account .woocommerce > p:first-child,
-body.logged-in.woocommerce-account .ws-main article .woocommerce > .woocommerce-notices-wrapper,
-body.logged-in.woocommerce-account .ws-main article .woocommerce > .woocommerce-message,
-body.logged-in.woocommerce-account .ws-main article .woocommerce > .woocommerce-info,
-body.logged-in.woocommerce-account .ws-main article .woocommerce > .woocommerce-error,
-body.logged-in.woocommerce-account .ws-main .wp-block-woocommerce-my-account .woocommerce > .woocommerce-notices-wrapper,
-body.logged-in.woocommerce-account .ws-main .wp-block-woocommerce-my-account .woocommerce > .woocommerce-message,
-body.logged-in.woocommerce-account .ws-main .wp-block-woocommerce-my-account .woocommerce > .woocommerce-info,
-body.logged-in.woocommerce-account .ws-main .wp-block-woocommerce-my-account .woocommerce > .woocommerce-error {
-  grid-column: 1 / -1;
+body.woocommerce-account .ws-my-account-layout__nav {
+  grid-column: 1;
+}
+
+body.woocommerce-account .ws-my-account-layout__content {
+  grid-column: 2;
+  min-width: 0;
 }
 
 body.woocommerce-account .woocommerce-MyAccount-navigation {
@@ -313,9 +306,13 @@ body.woocommerce-account .woocommerce-error {
 }
 
 @media (max-width: 980px) {
-  body.logged-in.woocommerce-account .ws-main article .woocommerce,
-  body.logged-in.woocommerce-account .ws-main .wp-block-woocommerce-my-account .woocommerce {
+  body.woocommerce-account .ws-my-account-layout {
     grid-template-columns: 1fr;
+  }
+
+  body.woocommerce-account .ws-my-account-layout__nav,
+  body.woocommerce-account .ws-my-account-layout__content {
+    grid-column: 1;
   }
 
   body.woocommerce-account .woocommerce-MyAccount-navigation {
