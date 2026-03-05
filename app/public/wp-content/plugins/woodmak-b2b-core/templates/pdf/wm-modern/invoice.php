@@ -9,6 +9,79 @@ $customer_vat       = isset( $wm_context['customer_vat'] ) ? (string) $wm_contex
 $discount_percent   = isset( $wm_context['discount_percent'] ) ? (int) $wm_context['discount_percent'] : 0;
 $discount_html      = isset( $wm_context['discount_amount_html'] ) ? (string) $wm_context['discount_amount_html'] : '';
 $shop_vat           = method_exists( $this, 'get_shop_vat_number' ) ? (string) $this->get_shop_vat_number() : '';
+$invoice_type_label = 'B2B' === $invoice_type_label ? 'B2B' : 'B2C';
+
+$wm_u = static function ( $unicode_json_string ) {
+	$payload = '"' . (string) $unicode_json_string . '"';
+	if ( function_exists( 'wp_json_decode' ) ) {
+		$decoded = wp_json_decode( $payload );
+	} else {
+		$decoded = json_decode( $payload );
+	}
+
+	return is_string( $decoded ) ? $decoded : (string) $unicode_json_string;
+};
+
+$wm_labels = array(
+	'document_title'      => $wm_u('\\u0424\\u0430\\u043a\\u0442\\u0443\\u0440\\u0430'),
+	'vat_colon'           => $wm_u('\\u0415\\u0414\\u0411:'),
+	'bill_to'             => $wm_u('\\u0424\\u0430\\u043a\\u0442\\u0443\\u0440\\u0438\\u0440\\u0430 \\u0434\\u043e'),
+	'invoice_number'      => $wm_u('\\u0411\\u0440\\u043e\\u0458 \\u043d\\u0430 \\u0444\\u0430\\u043a\\u0442\\u0443\\u0440\\u0430:'),
+	'invoice_date'        => $wm_u('\\u0414\\u0430\\u0442\\u0443\\u043c \\u043d\\u0430 \\u0444\\u0430\\u043a\\u0442\\u0443\\u0440\\u0430:'),
+	'order_number'        => $wm_u('\\u0411\\u0440\\u043e\\u0458 \\u043d\\u0430 \\u043d\\u0430\\u0440\\u0430\\u0447\\u043a\\u0430:'),
+	'order_date'          => $wm_u('\\u0414\\u0430\\u0442\\u0443\\u043c \\u043d\\u0430 \\u043d\\u0430\\u0440\\u0430\\u0447\\u043a\\u0430:'),
+	'invoice_type'        => $wm_u('\\u0422\\u0438\\u043f \\u043d\\u0430 \\u0444\\u0430\\u043a\\u0442\\u0443\\u0440\\u0430'),
+	'company'             => $wm_u('\\u041a\\u043e\\u043c\\u043f\\u0430\\u043d\\u0438\\u0458\\u0430'),
+	'vat'                 => $wm_u('\\u0415\\u0414\\u0411'),
+	'b2b_discount'        => $wm_u('B2B \\u043f\\u043e\\u043f\\u0443\\u0441\\u0442'),
+	'shipping_address'    => $wm_u('\\u0410\\u0434\\u0440\\u0435\\u0441\\u0430 \\u0437\\u0430 \\u0438\\u0441\\u043f\\u043e\\u0440\\u0430\\u043a\\u0430'),
+	'not_available'       => $wm_u('\\u041d/\\u0414'),
+	'line_no'             => $wm_u('\\u0420.\\u0431.'),
+	'product'             => $wm_u('\\u041f\\u0440\\u043e\\u0438\\u0437\\u0432\\u043e\\u0434'),
+	'quantity'            => $wm_u('\\u041a\\u043e\\u043b\\u0438\\u0447\\u0438\\u043d\\u0430'),
+	'price'               => $wm_u('\\u0426\\u0435\\u043d\\u0430'),
+	'document_notes'      => $wm_u('\\u0417\\u0430\\u0431\\u0435\\u043b\\u0435\\u0448\\u043a\\u0438'),
+	'customer_notes'      => $wm_u('\\u0417\\u0430\\u0431\\u0435\\u043b\\u0435\\u0448\\u043a\\u0438 \\u043e\\u0434 \\u043a\\u043b\\u0438\\u0435\\u043d\\u0442'),
+	'tax_number_label'    => $wm_u('\\u0414\\u0430\\u043d\\u043e\\u0447\\u0435\\u043d \\u0431\\u0440\\u043e\\u0458:'),
+	'bank_deposit_label'  => $wm_u('\\u0411\\u0430\\u043d\\u043a\\u0430 \\u0414\\u0435\\u043f\\u043e\\u043d\\u0435\\u043d\\u0442:'),
+	'bank_deposit_value1' => $wm_u('\\u0425\\u0430\\u043b\\u043a \\u0431\\u0430\\u043d\\u043a\\u0430 270074746360185'),
+	'bank_deposit_value2' => $wm_u('\\u041a\\u043e\\u043c\\u0435\\u0440\\u0446\\u0438\\u0458\\u0430\\u043b\\u043d\\u0430 \\u0431\\u0430\\u043d\\u043a\\u0430 300000004573198'),
+);
+
+$wm_total_labels_by_key = array(
+	'subtotal'       => $wm_u('\\u041c\\u0435\\u0453\\u0443\\u0437\\u0431\\u0438\\u0440:'),
+	'cart_subtotal'  => $wm_u('\\u041c\\u0435\\u0453\\u0443\\u0437\\u0431\\u0438\\u0440:'),
+	'shipping'       => $wm_u('\\u0418\\u0441\\u043f\\u043e\\u0440\\u0430\\u043a\\u0430:'),
+	'discount'       => $wm_u('\\u041f\\u043e\\u043f\\u0443\\u0441\\u0442:'),
+	'fee'            => $wm_u('\\u041d\\u0430\\u0434\\u043e\\u043c\\u0435\\u0441\\u0442:'),
+	'tax'            => $wm_u('\\u0415\\u0414\\u0411:'),
+	'order_total'    => $wm_u('\\u0412\\u043a\\u0443\\u043f\\u043d\\u043e:'),
+	'payment_method' => $wm_u('\\u041d\\u0430\\u0447\\u0438\\u043d \\u043d\\u0430 \\u043f\\u043b\\u0430\\u045c\\u0430\\u045a\\u0435:'),
+);
+
+$wm_total_labels_by_text = array(
+	'Subtotal:'       => $wm_u('\\u041c\\u0435\\u0453\\u0443\\u0437\\u0431\\u0438\\u0440:'),
+	'Shipping:'       => $wm_u('\\u0418\\u0441\\u043f\\u043e\\u0440\\u0430\\u043a\\u0430:'),
+	'Discount:'       => $wm_u('\\u041f\\u043e\\u043f\\u0443\\u0441\\u0442:'),
+	'Fee:'            => $wm_u('\\u041d\\u0430\\u0434\\u043e\\u043c\\u0435\\u0441\\u0442:'),
+	'Tax:'            => $wm_u('\\u0415\\u0414\\u0411:'),
+	'Total:'          => $wm_u('\\u0412\\u043a\\u0443\\u043f\\u043d\\u043e:'),
+	'Payment method:' => $wm_u('\\u041d\\u0430\\u0447\\u0438\\u043d \\u043d\\u0430 \\u043f\\u043b\\u0430\\u045c\\u0430\\u045a\\u0435:'),
+);
+
+$wm_translate_total_label = static function ( $key, $label ) use ( $wm_total_labels_by_key, $wm_total_labels_by_text ) {
+	$key = (string) $key;
+	if ( isset( $wm_total_labels_by_key[ $key ] ) ) {
+		return $wm_total_labels_by_key[ $key ];
+	}
+
+	$label = is_string( $label ) ? trim( wp_strip_all_tags( $label ) ) : '';
+	if ( isset( $wm_total_labels_by_text[ $label ] ) ) {
+		return $wm_total_labels_by_text[ $label ];
+	}
+
+	return $label;
+};
 
 $wm_country_name_from_code = static function ( $country_code ) {
 	if ( ! function_exists( 'WC' ) || ! WC()->countries ) {
@@ -184,7 +257,7 @@ $shipping_address_lines      = array_filter(
 					<?php do_action( 'wpo_wcpdf_after_shop_logo', $this->get_type(), $this->order ); ?>
 				</div>
 			<?php else : ?>
-				<h1 class="wm-doc-title"><?php $this->title(); ?></h1>
+				<h1 class="wm-doc-title"><?php echo esc_html( $wm_labels['document_title'] ); ?></h1>
 			<?php endif; ?>
 			<?php if ( ! empty( $this->get_shop_phone_number() ) ) : ?>
 				<div class="shop-phone-number"><?php $this->shop_phone_number(); ?></div>
@@ -196,7 +269,7 @@ $shipping_address_lines      = array_filter(
 		<td class="wm-head__shop">
 			<div class="shop-name"><strong><?php $this->shop_name(); ?></strong></div>
 			<?php if ( '' !== $shop_vat ) : ?>
-				<div class="shop-vat"><strong><?php esc_html_e( 'VAT:', 'woodmak-b2b-core' ); ?></strong> <?php echo esc_html( $shop_vat ); ?></div>
+				<div class="shop-vat"><strong><?php echo esc_html( $wm_labels['vat_colon'] ); ?></strong> <?php echo esc_html( $shop_vat ); ?></div>
 			<?php endif; ?>
 			<div class="shop-address">
 				<?php if ( '' !== $shop_postcode || '' !== $shop_city ) : ?>
@@ -215,20 +288,20 @@ $shipping_address_lines      = array_filter(
 				<?php $wm_render_address_lines( $shop_address_lines ); ?>
 			</div>
 			<div class="shop-extra-fields">
-				<div class="shop-extra-field"><span class="shop-extra-label"><?php echo esc_html( 'Даночен број:' ); ?></span> <span class="shop-extra-value"><?php echo esc_html( '4044020518113' ); ?></span></div>
-				<div class="shop-extra-field"><span class="shop-extra-label"><?php echo esc_html( 'Банка Депонент:' ); ?></span> <span class="shop-extra-value"><?php echo esc_html( 'Халк банка270074746360185' ); ?></span></div>
-				<div class="shop-extra-field"><span class="shop-extra-label"><?php echo esc_html( 'Банка Депонент:' ); ?></span> <span class="shop-extra-value"><?php echo esc_html( 'Комерцијална банка300000004573198' ); ?></span></div>
+				<div class="shop-extra-field"><span class="shop-extra-label"><?php echo esc_html( $wm_labels['tax_number_label'] ); ?></span> <span class="shop-extra-value"><?php echo esc_html( '4044020518113' ); ?></span></div>
+				<div class="shop-extra-field"><span class="shop-extra-label"><?php echo esc_html( $wm_labels['bank_deposit_label'] ); ?></span> <span class="shop-extra-value"><?php echo esc_html( $wm_labels['bank_deposit_value1'] ); ?></span></div>
+				<div class="shop-extra-field"><span class="shop-extra-label"><?php echo esc_html( $wm_labels['bank_deposit_label'] ); ?></span> <span class="shop-extra-value"><?php echo esc_html( $wm_labels['bank_deposit_value2'] ); ?></span></div>
 			</div>
 		</td>
 	</tr>
 </table>
 
-<h1 class="document-type-label"><?php $this->title(); ?></h1>
+<h1 class="document-type-label"><?php echo esc_html( $wm_labels['document_title'] ); ?></h1>
 
 <table class="wm-summary container">
 	<tr>
 		<td class="wm-summary__customer">
-			<h3><?php esc_html_e( 'Bill to', 'woodmak-b2b-core' ); ?></h3>
+			<h3><?php echo esc_html( $wm_labels['bill_to'] ); ?></h3>
 			<?php do_action( 'wpo_wcpdf_before_billing_address', $this->get_type(), $this->order ); ?>
 			<div class="wm-address-block">
 				<?php $wm_render_address_lines( $billing_address_lines ); ?>
@@ -246,45 +319,45 @@ $shipping_address_lines      = array_filter(
 				<?php do_action( 'wpo_wcpdf_before_order_data', $this->get_type(), $this->order ); ?>
 				<?php if ( isset( $this->settings['display_number'] ) ) : ?>
 					<tr class="invoice-number">
-						<th><?php $this->number_title(); ?></th>
+						<th><?php echo esc_html( $wm_labels['invoice_number'] ); ?></th>
 						<td><?php $this->number( $this->get_type() ); ?></td>
 					</tr>
 				<?php endif; ?>
 				<?php if ( isset( $this->settings['display_date'] ) ) : ?>
 					<tr class="invoice-date">
-						<th><?php $this->date_title(); ?></th>
+						<th><?php echo esc_html( $wm_labels['invoice_date'] ); ?></th>
 						<td><?php $this->date( $this->get_type() ); ?></td>
 					</tr>
 				<?php endif; ?>
 				<tr class="order-number">
-					<th><?php $this->order_number_title(); ?></th>
+					<th><?php echo esc_html( $wm_labels['order_number'] ); ?></th>
 					<td><?php $this->order_number(); ?></td>
 				</tr>
 				<tr class="order-date">
-					<th><?php $this->order_date_title(); ?></th>
+					<th><?php echo esc_html( $wm_labels['order_date'] ); ?></th>
 					<td><?php $this->order_date(); ?></td>
 				</tr>
 				<?php if ( '' !== $invoice_type_label ) : ?>
 					<tr class="invoice-type">
-						<th><?php esc_html_e( 'Invoice type', 'woodmak-b2b-core' ); ?></th>
+						<th><?php echo esc_html( $wm_labels['invoice_type'] ); ?></th>
 						<td><?php echo esc_html( $invoice_type_label ); ?></td>
 					</tr>
 				<?php endif; ?>
 				<?php if ( '' !== $company_name ) : ?>
 					<tr class="company-name">
-						<th><?php esc_html_e( 'Company', 'woodmak-b2b-core' ); ?></th>
+						<th><?php echo esc_html( $wm_labels['company'] ); ?></th>
 						<td><?php echo esc_html( $company_name ); ?></td>
 					</tr>
 				<?php endif; ?>
 				<?php if ( '' !== $customer_vat ) : ?>
 					<tr class="company-vat">
-						<th><?php esc_html_e( 'VAT', 'woodmak-b2b-core' ); ?></th>
+						<th><?php echo esc_html( $wm_labels['vat'] ); ?></th>
 						<td><?php echo esc_html( $customer_vat ); ?></td>
 					</tr>
 				<?php endif; ?>
 				<?php if ( $is_b2b && $discount_percent > 0 ) : ?>
 					<tr class="b2b-discount">
-						<th><?php esc_html_e( 'B2B discount', 'woodmak-b2b-core' ); ?></th>
+						<th><?php echo esc_html( $wm_labels['b2b_discount'] ); ?></th>
 						<td>
 							<?php echo esc_html( $discount_percent ); ?>%
 							<?php if ( '' !== $discount_html ) : ?>
@@ -303,14 +376,14 @@ $shipping_address_lines      = array_filter(
 	<table class="wm-shipping container">
 		<tr>
 			<td class="wm-shipping__cell">
-				<h3><?php $this->shipping_address_title(); ?></h3>
+				<h3><?php echo esc_html( $wm_labels['shipping_address'] ); ?></h3>
 				<?php do_action( 'wpo_wcpdf_before_shipping_address', $this->get_type(), $this->order ); ?>
 				<div class="wm-address-block">
 					<?php
 					if ( ! empty( $shipping_address_lines ) ) {
 						$wm_render_address_lines( $shipping_address_lines );
 					} else {
-						echo '<div class="wm-address-line">' . esc_html__( 'N/A', 'woocommerce-pdf-invoices-packing-slips' ) . '</div>';
+						echo '<div class="wm-address-line">' . esc_html( $wm_labels['not_available'] ) . '</div>';
 					}
 					?>
 				</div>
@@ -328,10 +401,10 @@ $shipping_address_lines      = array_filter(
 <table class="order-details">
 	<thead>
 		<tr>
-			<th class="line-number"><?php esc_html_e( 'No.', 'woodmak-b2b-core' ); ?></th>
-			<th class="product"><?php esc_html_e( 'Product', 'woocommerce-pdf-invoices-packing-slips' ); ?></th>
-			<th class="quantity"><?php esc_html_e( 'Quantity', 'woocommerce-pdf-invoices-packing-slips' ); ?></th>
-			<th class="price"><?php esc_html_e( 'Price', 'woocommerce-pdf-invoices-packing-slips' ); ?></th>
+			<th class="line-number"><?php echo esc_html( $wm_labels['line_no'] ); ?></th>
+			<th class="product"><?php echo esc_html( $wm_labels['product'] ); ?></th>
+			<th class="quantity"><?php echo esc_html( $wm_labels['quantity'] ); ?></th>
+			<th class="price"><?php echo esc_html( $wm_labels['price'] ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -370,7 +443,7 @@ $shipping_address_lines      = array_filter(
 				<?php do_action( 'wpo_wcpdf_before_document_notes', $this->get_type(), $this->order ); ?>
 				<?php if ( $this->get_document_notes() ) : ?>
 					<div class="document-notes">
-						<h3><?php $this->notes_title(); ?></h3>
+						<h3><?php echo esc_html( $wm_labels['document_notes'] ); ?></h3>
 						<?php $this->document_notes(); ?>
 					</div>
 				<?php endif; ?>
@@ -378,7 +451,7 @@ $shipping_address_lines      = array_filter(
 				<?php do_action( 'wpo_wcpdf_before_customer_notes', $this->get_type(), $this->order ); ?>
 				<?php if ( $this->get_shipping_notes() ) : ?>
 					<div class="customer-notes">
-						<h3><?php $this->customer_notes_title(); ?></h3>
+						<h3><?php echo esc_html( $wm_labels['customer_notes'] ); ?></h3>
 						<?php $this->shipping_notes(); ?>
 					</div>
 				<?php endif; ?>
@@ -389,7 +462,7 @@ $shipping_address_lines      = array_filter(
 					<tfoot>
 						<?php foreach ( $this->get_woocommerce_totals() as $key => $total ) : ?>
 							<tr class="<?php echo esc_attr( $key ); ?>">
-								<th class="description"><?php echo esc_html( $total['label'] ); ?></th>
+								<th class="description"><?php echo esc_html( $wm_translate_total_label( $key, isset( $total['label'] ) ? $total['label'] : '' ) ); ?></th>
 								<td class="price"><span class="totals-price"><?php echo esc_html( $total['value'] ); ?></span></td>
 							</tr>
 						<?php endforeach; ?>

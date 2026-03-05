@@ -36,6 +36,7 @@ require_once WM_B2B_CORE_PATH . 'includes/class-wm-rest.php';
 require_once WM_B2B_CORE_PATH . 'includes/class-wm-cart-sidebar.php';
 require_once WM_B2B_CORE_PATH . 'includes/class-wm-checkout.php';
 require_once WM_B2B_CORE_PATH . 'includes/class-wm-invoices.php';
+require_once WM_B2B_CORE_PATH . 'includes/class-wm-localization.php';
 require_once WM_B2B_CORE_PATH . 'includes/class-wm-bootstrap.php';
 
 register_activation_hook( __FILE__, array( 'WM_Roles', 'activate' ) );

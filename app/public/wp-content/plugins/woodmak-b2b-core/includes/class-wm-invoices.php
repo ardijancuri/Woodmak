@@ -11,6 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WM_Invoices {
 	/**
+	 * Whether invoice render switched locale.
+	 *
+	 * @var bool
+	 */
+	private static $invoice_locale_switched = false;
+
+	/**
 	 * Relative path to custom invoice template directory.
 	 */
 	private const CUSTOM_TEMPLATE_DIR = 'templates/pdf/wm-modern';
@@ -22,6 +29,48 @@ class WM_Invoices {
 	 */
 	public static function init() {
 		add_filter( 'wpo_wcpdf_template_file', array( __CLASS__, 'override_invoice_template_file' ), 20, 3 );
+		add_action( 'wpo_wcpdf_before_document', array( __CLASS__, 'switch_invoice_locale' ), 5, 2 );
+		add_action( 'wpo_wcpdf_after_document', array( __CLASS__, 'restore_invoice_locale' ), 99, 2 );
+	}
+
+	/**
+	 * Switch invoice locale to Macedonian for document rendering.
+	 *
+	 * @param string         $document_type Document type.
+	 * @param WC_Order|mixed $order Order object.
+	 * @return void
+	 */
+	public static function switch_invoice_locale( $document_type, $order = null ) {
+		if ( ! self::is_invoice_document_type( $document_type ) ) {
+			return;
+		}
+
+		if ( self::$invoice_locale_switched ) {
+			return;
+		}
+
+		if ( function_exists( 'switch_to_locale' ) ) {
+			self::$invoice_locale_switched = (bool) switch_to_locale( 'mk_MK' );
+		}
+	}
+
+	/**
+	 * Restore previous locale after invoice render.
+	 *
+	 * @param string         $document_type Document type.
+	 * @param WC_Order|mixed $order Order object.
+	 * @return void
+	 */
+	public static function restore_invoice_locale( $document_type, $order = null ) {
+		if ( ! self::is_invoice_document_type( $document_type ) ) {
+			return;
+		}
+
+		if ( self::$invoice_locale_switched && function_exists( 'restore_previous_locale' ) ) {
+			restore_previous_locale();
+		}
+
+		self::$invoice_locale_switched = false;
 	}
 
 	/**

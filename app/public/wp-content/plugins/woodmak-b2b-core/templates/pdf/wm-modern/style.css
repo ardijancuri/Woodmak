@@ -10,7 +10,7 @@ body {
 	background: #fff;
 	color: #111;
 	margin: 0;
-	font-family: 'Open Sans', sans-serif;
+	font-family: "DejaVu Sans", sans-serif;
 	font-size: 9pt;
 	line-height: 1.32;
 	overflow-wrap: anywhere;
@@ -131,6 +131,7 @@ td.totals-cell {
 
 .wm-head__shop .shop-extra-fields .shop-extra-field {
 	font-weight: 400;
+	font-family: "DejaVu Sans", "Segoe", "Open Sans", sans-serif;
 	line-height: 1.02;
 	margin-top: 0.05mm;
 }
@@ -202,10 +203,14 @@ td.totals-cell {
 }
 
 .wm-meta-card th {
-	width: 44%;
+	width: 60%;
 	font-weight: 600;
 	color: #333;
 	background: #fafafa;
+}
+
+.wm-meta-card td {
+	width: 40%;
 }
 
 .wm-meta-card .discount-amount {
@@ -349,5 +354,5 @@ div.bottom-spacer {
 
 .pagenum,
 .pagecount {
-	font-family: sans-serif;
+	font-family: "DejaVu Sans", sans-serif;
 }

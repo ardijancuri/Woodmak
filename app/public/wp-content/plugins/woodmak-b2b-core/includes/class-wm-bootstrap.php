@@ -47,6 +47,7 @@ class WM_Bootstrap {
 		WM_REST::init();
 		WM_Cart_Sidebar::init();
 		WM_Checkout::init();
+		WM_Localization::init();
 		if ( defined( 'WPO_WCPDF_VERSION' ) ) {
 			WM_Invoices::init();
 		}

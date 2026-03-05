@@ -372,7 +372,51 @@ function ws_get_dynamic_theme_css() {
  * @return string
  */
 function ws_get_theme_mod_text( $key, $default = '' ) {
-	return sanitize_text_field( (string) get_theme_mod( $key, $default ) );
+	$value = sanitize_text_field( (string) get_theme_mod( $key, $default ) );
+	return ws_translate_dynamic_text( $key, $value );
+}
+
+/**
+ * Register/translate dynamic text through Polylang.
+ *
+ * @param string $key   Stable key.
+ * @param string $value Text value.
+ * @return string
+ */
+function ws_translate_dynamic_text( $key, $value ) {
+	$value = (string) $value;
+	if ( '' === $value ) {
+		return $value;
+	}
+
+	if ( function_exists( 'pll_register_string' ) ) {
+		pll_register_string( 'ws_theme_mod_' . sanitize_key( $key ), $value, 'woodmak-store' );
+	}
+
+	if ( function_exists( 'pll__' ) ) {
+		$translated = (string) pll__( $value );
+		if ( '' !== $translated ) {
+			return $translated;
+		}
+	}
+
+	$is_mk = function_exists( 'pll_current_language' ) && 'mk' === (string) pll_current_language( 'slug' );
+	if ( $is_mk ) {
+		$normalized = trim( $value );
+		$fallback_map = array(
+			'New Collection 2026' => 'Нова колекција 2026',
+			'Premium furniture solutions for retail and wholesale buyers.' => 'Премиум мебел решенија за малопродажни и големопродажни купувачи.',
+			'Shop Now' => 'Купи сега',
+			'Living Room Collection' => 'Колекција за дневна соба',
+			'Dining and Kitchen Picks' => 'Избор за трпезарија и кујна',
+		);
+
+		if ( isset( $fallback_map[ $normalized ] ) ) {
+			return $fallback_map[ $normalized ];
+		}
+	}
+
+	return $value;
 }
 
 /**
