@@ -40,6 +40,7 @@ class WM_Catalog_Filters {
 			array(
 				'restUrl'           => esc_url_raw( rest_url( 'woodmak/v1/catalog' ) ),
 				'mobileCollapseMax' => 920,
+				'mobilePaginationMax' => 760,
 			)
 		);
 	}
