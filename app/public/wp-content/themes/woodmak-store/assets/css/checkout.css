@@ -1,7 +1,7 @@
 .ws-checkout-wrap {
-  border: 1px solid var(--wm-border);
+  border: 0;
   background: #fff;
-  padding: 1rem;
+  padding: 0;
 }
 
 .ws-checkout-columns {
@@ -36,13 +36,24 @@
 }
 
 .role-b2c .wm-checkout-note {
-  border-left: 4px solid #9a9a9a;
+  border-left: 4px solid var(--wm-primary);
 }
 
 .wm-checkout-note {
   margin-bottom: 0.8rem;
   background: #fff;
   border: 1px solid var(--wm-border);
+}
+
+.ws-checkout-additional-title {
+  margin-top: 1rem;
+}
+
+.woocommerce-form-coupon-toggle .showcoupon,
+.woocommerce-form-coupon-toggle .ws-checkout-coupon-link {
+  color: var(--wm-primary);
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 #billing_state_field,
@@ -62,6 +73,10 @@
 .woocommerce-checkout #payment {
   background: #fff;
   border: 1px solid var(--wm-border);
+}
+
+.woocommerce-checkout #payment .payment_box.payment_method_cod {
+  background: #f3f3f3;
 }
 
 .woocommerce-cart .wc-proceed-to-checkout a.checkout-button,

@@ -176,6 +176,15 @@ class WM_Localization {
 	}
 
 	/**
+	 * Public storefront language check for other plugin classes.
+	 *
+	 * @return bool
+	 */
+	public static function is_macedonian_storefront() {
+		return self::should_localize_request() && self::is_macedonian_request();
+	}
+
+	/**
 	 * Check if request should be localized on frontend.
 	 *
 	 * @return bool

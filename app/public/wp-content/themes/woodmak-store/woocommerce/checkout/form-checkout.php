@@ -23,7 +23,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 					<?php do_action( 'woocommerce_checkout_shipping' ); ?>
 				</section>
 				<section class="ws-checkout-col ws-checkout-col--review">
-					<h3 id="order_review_heading"><?php esc_html_e( 'Your Order', 'woodmak-store' ); ?></h3>
+					<h3 id="order_review_heading"><?php esc_html_e( 'Ваша нарачка', 'woodmak-store' ); ?></h3>
 					<?php do_action( 'woocommerce_checkout_before_order_review' ); ?>
 					<div id="order_review" class="woocommerce-checkout-review-order">
 						<?php do_action( 'woocommerce_checkout_order_review' ); ?>

@@ -17,17 +17,74 @@ class WM_Checkout {
 	 */
 	public static function init() {
 		add_filter( 'body_class', array( __CLASS__, 'add_role_body_classes' ) );
+		add_action( 'init', array( __CLASS__, 'maybe_migrate_checkout_page_to_classic' ), 20 );
 		add_action( 'wp', array( __CLASS__, 'handle_frontend_notices' ) );
 		add_filter( 'woocommerce_default_address_fields', array( __CLASS__, 'customize_default_address_fields' ) );
 		add_filter( 'woocommerce_billing_fields', array( __CLASS__, 'customize_billing_fields' ) );
 		add_filter( 'woocommerce_shipping_fields', array( __CLASS__, 'customize_shipping_fields' ) );
 		add_filter( 'woocommerce_checkout_fields', array( __CLASS__, 'customize_checkout_fields' ) );
 		add_filter( 'woocommerce_form_field_args', array( __CLASS__, 'force_hidden_state_fields' ), 20, 3 );
+		add_filter( 'woocommerce_gateway_title', array( __CLASS__, 'translate_gateway_title' ), 20, 2 );
+		add_filter( 'woocommerce_gateway_description', array( __CLASS__, 'translate_gateway_description' ), 20, 2 );
 		add_filter( 'woocommerce_checkout_get_value', array( __CLASS__, 'prefill_checkout_values' ), 10, 2 );
 		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'validate_b2b_checkout_fields' ) );
 		add_action( 'woocommerce_checkout_update_user_meta', array( __CLASS__, 'persist_b2b_profile_fields' ), 20, 2 );
 		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'save_vat_to_order' ), 30, 2 );
 		add_action( 'woocommerce_before_checkout_form', array( __CLASS__, 'render_role_checkout_message' ), 5 );
+	}
+
+	/**
+	 * Migrate the checkout page from Blocks to the classic shortcode once.
+	 *
+	 * @return void
+	 */
+	public static function maybe_migrate_checkout_page_to_classic() {
+		if ( get_option( 'wm_checkout_migrated_to_classic_v1' ) ) {
+			return;
+		}
+
+		if ( ! function_exists( 'wc_get_page_id' ) ) {
+			return;
+		}
+
+		$checkout_page_id = (int) wc_get_page_id( 'checkout' );
+		if ( $checkout_page_id <= 0 ) {
+			return;
+		}
+
+		$checkout_page = get_post( $checkout_page_id );
+		if ( ! $checkout_page instanceof WP_Post || 'page' !== $checkout_page->post_type ) {
+			return;
+		}
+
+		$content          = (string) $checkout_page->post_content;
+		$uses_block_check = has_block( 'woocommerce/checkout', $checkout_page ) || false !== strpos( $content, 'wp-block-woocommerce-checkout' );
+
+		if ( ! $uses_block_check ) {
+			if ( false !== strpos( $content, '[woocommerce_checkout]' ) ) {
+				update_option( 'wm_checkout_migrated_to_classic_v1', 1, false );
+			}
+			return;
+		}
+
+		if ( ! metadata_exists( 'post', $checkout_page_id, '_wm_checkout_page_content_backup_v1' ) ) {
+			update_post_meta( $checkout_page_id, '_wm_checkout_page_content_backup_v1', $content );
+		}
+
+		$result = wp_update_post(
+			array(
+				'ID'           => $checkout_page_id,
+				'post_content' => '[woocommerce_checkout]',
+			),
+			true
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return;
+		}
+
+		clean_post_cache( $checkout_page_id );
+		update_option( 'wm_checkout_migrated_to_classic_v1', 1, false );
 	}
 
 	/**
@@ -181,6 +238,44 @@ class WM_Checkout {
 		$args['label']    = '';
 
 		return $args;
+	}
+
+	/**
+	 * Translate checkout gateway titles for Macedonian storefront.
+	 *
+	 * @param string $title Gateway title.
+	 * @param string $gateway_id Gateway ID.
+	 * @return string
+	 */
+	public static function translate_gateway_title( $title, $gateway_id ) {
+		if ( 'cod' !== (string) $gateway_id || ! class_exists( 'WM_Localization' ) || ! WM_Localization::is_macedonian_storefront() ) {
+			return $title;
+		}
+
+		if ( 'Cash on delivery' === trim( wp_strip_all_tags( (string) $title ) ) ) {
+			return 'Плаќање при испорака';
+		}
+
+		return $title;
+	}
+
+	/**
+	 * Translate checkout gateway descriptions for Macedonian storefront.
+	 *
+	 * @param string $description Gateway description.
+	 * @param string $gateway_id Gateway ID.
+	 * @return string
+	 */
+	public static function translate_gateway_description( $description, $gateway_id ) {
+		if ( 'cod' !== (string) $gateway_id || ! class_exists( 'WM_Localization' ) || ! WM_Localization::is_macedonian_storefront() ) {
+			return $description;
+		}
+
+		if ( 'Pay with cash upon delivery.' === trim( wp_strip_all_tags( (string) $description ) ) ) {
+			return 'Платете со готовина при испорака.';
+		}
+
+		return $description;
 	}
 
 	/**
