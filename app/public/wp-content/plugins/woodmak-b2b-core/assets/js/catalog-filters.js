@@ -4,21 +4,35 @@
     return;
   }
 
+  function setSectionExpanded(toggle, section, target, isExpanded) {
+    toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    target.hidden = !isExpanded;
+    if (section) {
+      section.classList.toggle('is-collapsed', !isExpanded);
+    }
+  }
+
+  var mobileCollapseMax = 920;
+  if (window.wmCatalogFilters && wmCatalogFilters.mobileCollapseMax) {
+    mobileCollapseMax = parseInt(wmCatalogFilters.mobileCollapseMax, 10) || 920;
+  }
+
+  var isMobileFilters = window.matchMedia('(max-width: ' + mobileCollapseMax + 'px)').matches;
+
   form.querySelectorAll('[data-wm-filter-toggle]').forEach(function (toggle) {
     var targetId = toggle.getAttribute('aria-controls');
     var target = targetId ? document.getElementById(targetId) : null;
     if (!target) {
       return;
     }
+    var section = toggle.closest('[data-wm-filter-section]');
+    var defaultExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+    setSectionExpanded(toggle, section, target, isMobileFilters ? false : defaultExpanded);
 
     toggle.addEventListener('click', function () {
       var expanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-      target.hidden = expanded;
-      var section = toggle.closest('[data-wm-filter-section]');
-      if (section) {
-        section.classList.toggle('is-collapsed', expanded);
-      }
+      setSectionExpanded(toggle, section, target, !expanded);
     });
   });
 

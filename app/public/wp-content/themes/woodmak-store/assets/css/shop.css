@@ -94,6 +94,10 @@
   gap: 0.48rem;
 }
 
+.wm-filter-section__body[hidden] {
+  display: none !important;
+}
+
 .wm-filter-checkbox-list {
   display: grid;
   gap: 0.18rem;
@@ -1097,6 +1101,10 @@ body.single-product .ws-single-product-wrap .up-sells.upsells.products .ws-produ
   .ws-shop-sidebar {
     position: static;
     top: auto;
+  }
+
+  .ws-shop-sidebar .wm-filter-actions {
+    margin-bottom: 1.4rem;
   }
 }
 
