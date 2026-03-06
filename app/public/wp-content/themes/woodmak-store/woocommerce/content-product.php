@@ -23,7 +23,7 @@ if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
 ?>
 <li <?php wc_product_class( 'ws-product-card', $product ); ?>>
 	<a href="<?php the_permalink(); ?>" class="ws-product-card__image">
-		<?php echo woocommerce_get_product_thumbnail( 'woocommerce_thumbnail' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		<?php echo $product->get_image( 'medium_large' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 	</a>
 	<div class="ws-product-card__body">
 		<?php if ( '' !== $category_name ) : ?>

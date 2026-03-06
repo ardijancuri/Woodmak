@@ -169,4 +169,48 @@
       });
     });
   });
+
+  var initSingleProductGallery = function () {
+    if (!document.body.classList.contains('single-product')) {
+      return;
+    }
+
+    document.querySelectorAll('[data-ws-product-gallery]').forEach(function (gallery) {
+      var slides = Array.prototype.slice.call(gallery.querySelectorAll('.ws-product-gallery__slide'));
+      var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('.ws-product-gallery__thumb'));
+
+      if (!slides.length) {
+        return;
+      }
+
+      var setActiveGalleryImage = function (index) {
+        slides.forEach(function (slide, slideIndex) {
+          var isActive = slideIndex === index;
+          slide.classList.toggle('is-active', isActive);
+          slide.hidden = !isActive;
+        });
+
+        thumbs.forEach(function (thumb, thumbIndex) {
+          var isActive = thumbIndex === index;
+          thumb.classList.toggle('is-active', isActive);
+          thumb.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      };
+
+      setActiveGalleryImage(0);
+
+      if (slides.length <= 1 || !thumbs.length) {
+        return;
+      }
+
+      thumbs.forEach(function (thumb, index) {
+        thumb.addEventListener('click', function (event) {
+          event.preventDefault();
+          setActiveGalleryImage(index);
+        });
+      });
+    });
+  };
+
+  initSingleProductGallery();
 })();
