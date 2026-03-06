@@ -31,6 +31,12 @@ class WM_Cart_Sidebar {
 		$js_path  = WM_B2B_CORE_PATH . 'assets/js/cart-sidebar.js';
 		$css_ver  = file_exists( $css_path ) ? (string) filemtime( $css_path ) : WM_B2B_CORE_VERSION;
 		$js_ver   = file_exists( $js_path ) ? (string) filemtime( $js_path ) : WM_B2B_CORE_VERSION;
+		$lang     = function_exists( 'pll_current_language' ) ? (string) pll_current_language( 'slug' ) : '';
+
+		if ( ! in_array( $lang, array( 'mk', 'en' ), true ) ) {
+			$locale = strtolower( (string) determine_locale() );
+			$lang   = 0 === strpos( $locale, 'mk_' ) ? 'mk' : 'en';
+		}
 
 		wp_enqueue_style( 'wm-cart-sidebar', WM_B2B_CORE_URL . 'assets/css/cart-sidebar.css', array(), $css_ver );
 		wp_enqueue_script( 'wm-cart-sidebar', WM_B2B_CORE_URL . 'assets/js/cart-sidebar.js', array( 'jquery', 'wc-add-to-cart' ), $js_ver, true );
@@ -40,6 +46,7 @@ class WM_Cart_Sidebar {
 			array(
 				'restUrl' => esc_url_raw( rest_url( 'woodmak/v1/cart-sidebar' ) ),
 				'nonce'   => wp_create_nonce( 'wp_rest' ),
+				'lang'    => $lang,
 			)
 		);
 	}

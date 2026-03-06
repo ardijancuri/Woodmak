@@ -26,6 +26,7 @@ class WM_Localization {
 		add_filter( 'locale', array( __CLASS__, 'filter_locale' ), 20 );
 		add_filter( 'plugin_locale', array( __CLASS__, 'filter_plugin_locale' ), 20, 2 );
 		add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
+		add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
 		add_filter( 'load_script_translations', array( __CLASS__, 'filter_script_translations' ), 20, 4 );
 		add_filter( 'the_title', array( __CLASS__, 'filter_page_titles' ), 20, 2 );
 		add_filter( 'nav_menu_item_title', array( __CLASS__, 'filter_menu_titles' ), 20, 4 );
@@ -60,6 +61,16 @@ class WM_Localization {
 			return 'en';
 		}
 
+		$cookie_lang = self::get_cookie_language_slug();
+		if ( '' !== $cookie_lang ) {
+			return $cookie_lang;
+		}
+
+		$referer_lang = self::get_referer_language_slug();
+		if ( '' !== $referer_lang ) {
+			return $referer_lang;
+		}
+
 		if ( function_exists( 'pll_current_language' ) && ! self::$in_locale_filter ) {
 			$lang = (string) pll_current_language( 'slug' );
 			if ( '' !== $lang ) {
@@ -79,6 +90,80 @@ class WM_Localization {
 		}
 
 		return 'en';
+	}
+
+	/**
+	 * Resolve Polylang language from cookie.
+	 *
+	 * @return string
+	 */
+	private static function get_cookie_language_slug() {
+		$cookie_name = defined( 'PLL_COOKIE' ) && PLL_COOKIE ? (string) PLL_COOKIE : 'pll_language';
+		if ( empty( $_COOKIE[ $cookie_name ] ) ) {
+			return '';
+		}
+
+		return self::normalize_language_slug( wp_unslash( (string) $_COOKIE[ $cookie_name ] ) );
+	}
+
+	/**
+	 * Resolve language from current referer.
+	 *
+	 * @return string
+	 */
+	private static function get_referer_language_slug() {
+		$referer = wp_get_referer();
+		if ( ! $referer && isset( $_SERVER['HTTP_REFERER'] ) ) {
+			$referer = wp_unslash( (string) $_SERVER['HTTP_REFERER'] );
+		}
+		if ( ! is_string( $referer ) || '' === $referer ) {
+			return '';
+		}
+
+		$query = wp_parse_url( $referer, PHP_URL_QUERY );
+		if ( is_string( $query ) && '' !== $query ) {
+			parse_str( $query, $query_args );
+			if ( ! empty( $query_args['lang'] ) ) {
+				$lang = self::normalize_language_slug( (string) $query_args['lang'] );
+				if ( '' !== $lang ) {
+					return $lang;
+				}
+			}
+		}
+
+		$path = wp_parse_url( $referer, PHP_URL_PATH );
+		if ( ! is_string( $path ) || '' === $path ) {
+			return '';
+		}
+
+		$segments = array_values( array_filter( explode( '/', trim( $path, '/' ) ) ) );
+		if ( empty( $segments ) ) {
+			return '';
+		}
+
+		return self::normalize_language_slug( (string) $segments[0] );
+	}
+
+	/**
+	 * Normalize raw language slug.
+	 *
+	 * @param string $lang Raw slug.
+	 * @return string
+	 */
+	private static function normalize_language_slug( $lang ) {
+		$lang = sanitize_key( (string) $lang );
+		return in_array( $lang, array( 'mk', 'en' ), true ) ? $lang : '';
+	}
+
+	/**
+	 * Decode ASCII-safe unicode escape strings.
+	 *
+	 * @param string $escaped Escaped unicode string.
+	 * @return string
+	 */
+	private static function decode_unicode_string( $escaped ) {
+		$decoded = json_decode( '"' . $escaped . '"' );
+		return is_string( $decoded ) ? $decoded : (string) $escaped;
 	}
 
 	/**
@@ -221,7 +306,8 @@ class WM_Localization {
 			'Checkout' => 'Наплата',
 			'Categories' => 'Категории',
 			'Open menu' => 'Отвори мени',
-			'Close menu' => 'Затвори мени',
+			'Close menu' => self::decode_unicode_string( '\u0417\u0430\u0442\u0432\u043e\u0440\u0438 \u043c\u0435\u043d\u0438' ),
+			'Close cart sidebar' => self::decode_unicode_string( '\u0417\u0430\u0442\u0432\u043e\u0440\u0438 \u043a\u043e\u0448\u043d\u0438\u0447\u043a\u0430' ),
 			'Category navigation' => 'Навигација по категории',
 			'Mobile category navigation' => 'Мобилна навигација по категории',
 			'Mobile utility navigation' => 'Мобилна корисничка навигација',
@@ -278,7 +364,8 @@ class WM_Localization {
 			'Reset' => 'Ресетирај',
 			'Your cart' => 'Вашата кошничка',
 			'Your cart is currently empty.' => 'Вашата кошничка моментално е празна.',
-			'Continue shopping' => 'Продолжи со купување',
+			'Continue shopping' => self::decode_unicode_string( '\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0438 \u0441\u043e \u043a\u0443\u043f\u0443\u0432\u0430\u045a\u0435' ),
+			'Remove %s from cart' => self::decode_unicode_string( '\u041e\u0442\u0441\u0442\u0440\u0430\u043d\u0438 %s \u043e\u0434 \u043a\u043e\u0448\u043d\u0438\u0447\u043a\u0430' ),
 			'Qty: %d' => 'Количина: %d',
 			'Subtotal' => 'Меѓузбир',
 			'Estimated total' => 'Проценет вкупен износ',
@@ -336,6 +423,34 @@ class WM_Localization {
 		);
 
 		return isset( $map[ $text ] ) ? $map[ $text ] : $translated;
+	}
+
+	/**
+	 * Translate selected plural strings on Macedonian storefront.
+	 *
+	 * @param string $translated Translated text.
+	 * @param string $single Singular text.
+	 * @param string $plural Plural text.
+	 * @param int    $number Count.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	public static function filter_ngettext( $translated, $single, $plural, $number, $domain ) {
+		if ( ! self::should_localize_request() || ! self::is_macedonian_request() ) {
+			return $translated;
+		}
+
+		if ( ! in_array( (string) $domain, array( 'woodmak-b2b-core', 'woocommerce' ), true ) ) {
+			return $translated;
+		}
+
+		if ( '%d item' === $single && '%d items' === $plural ) {
+			return 1 === (int) $number
+				? self::decode_unicode_string( '%d \u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434' )
+				: self::decode_unicode_string( '%d \u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0438' );
+		}
+
+		return $translated;
 	}
 
 	/**
@@ -488,3 +603,5 @@ class WM_Localization {
 		return strtr( $html, $map );
 	}
 }
+
+

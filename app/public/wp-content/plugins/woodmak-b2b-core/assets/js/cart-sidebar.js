@@ -1,4 +1,36 @@
 (function ($) {
+  function appendLangToUrl(url, lang) {
+    if (!url || !lang || /(?:\?|&)lang=/.test(url)) {
+      return url;
+    }
+
+    return url + (url.indexOf('?') === -1 ? '?' : '&') + 'lang=' + encodeURIComponent(lang);
+  }
+
+  function isWooCartRequest(url) {
+    return /wc-ajax=(add_to_cart|remove_from_cart|get_refreshed_fragments)/.test(url || '');
+  }
+
+  $.ajaxPrefilter(function (options, originalOptions) {
+    var lang = window.wmCartSidebar && wmCartSidebar.lang ? wmCartSidebar.lang : '';
+    if (!lang || !isWooCartRequest(options.url)) {
+      return;
+    }
+
+    options.url = appendLangToUrl(options.url, lang);
+
+    if (typeof options.data === 'string') {
+      if (!/(?:^|&)lang=/.test(options.data)) {
+        options.data += (options.data.length ? '&' : '') + 'lang=' + encodeURIComponent(lang);
+      }
+      return;
+    }
+
+    if ($.isPlainObject(options.data) && typeof options.data.lang === 'undefined') {
+      options.data.lang = lang;
+    }
+  });
+
   function syncSliderControls(context) {
     $(context).find('[data-wm-suggest-track]').each(function () {
       var track = this;
@@ -53,7 +85,9 @@
       return;
     }
 
-    fetch(wmCartSidebar.restUrl, {
+    var requestUrl = appendLangToUrl(wmCartSidebar.restUrl, wmCartSidebar.lang);
+
+    fetch(requestUrl, {
       credentials: 'same-origin',
       headers: {
         'X-WP-Nonce': wmCartSidebar.nonce || ''

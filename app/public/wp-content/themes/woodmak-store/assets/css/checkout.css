@@ -45,6 +45,12 @@
   border: 1px solid var(--wm-border);
 }
 
+#billing_state_field,
+#shipping_state_field,
+.form-row.wm-force-hidden {
+  display: none !important;
+}
+
 .woocommerce form .form-row input.input-text,
 .woocommerce form .form-row textarea,
 .select2-container--default .select2-selection--single {

@@ -18,12 +18,49 @@ class WM_Checkout {
 	public static function init() {
 		add_filter( 'body_class', array( __CLASS__, 'add_role_body_classes' ) );
 		add_action( 'wp', array( __CLASS__, 'handle_frontend_notices' ) );
+		add_filter( 'woocommerce_default_address_fields', array( __CLASS__, 'customize_default_address_fields' ) );
+		add_filter( 'woocommerce_billing_fields', array( __CLASS__, 'customize_billing_fields' ) );
+		add_filter( 'woocommerce_shipping_fields', array( __CLASS__, 'customize_shipping_fields' ) );
 		add_filter( 'woocommerce_checkout_fields', array( __CLASS__, 'customize_checkout_fields' ) );
+		add_filter( 'woocommerce_form_field_args', array( __CLASS__, 'force_hidden_state_fields' ), 20, 3 );
 		add_filter( 'woocommerce_checkout_get_value', array( __CLASS__, 'prefill_checkout_values' ), 10, 2 );
 		add_action( 'woocommerce_checkout_process', array( __CLASS__, 'validate_b2b_checkout_fields' ) );
 		add_action( 'woocommerce_checkout_update_user_meta', array( __CLASS__, 'persist_b2b_profile_fields' ), 20, 2 );
 		add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'save_vat_to_order' ), 30, 2 );
 		add_action( 'woocommerce_before_checkout_form', array( __CLASS__, 'render_role_checkout_message' ), 5 );
+	}
+
+	/**
+	 * Remove state from generic WooCommerce address defaults.
+	 *
+	 * @param array $fields Default address fields.
+	 * @return array
+	 */
+	public static function customize_default_address_fields( $fields ) {
+		unset( $fields['state'] );
+		return $fields;
+	}
+
+	/**
+	 * Remove state from billing fields.
+	 *
+	 * @param array $fields Billing fields.
+	 * @return array
+	 */
+	public static function customize_billing_fields( $fields ) {
+		unset( $fields['billing_state'] );
+		return $fields;
+	}
+
+	/**
+	 * Remove state from shipping fields.
+	 *
+	 * @param array $fields Shipping fields.
+	 * @return array
+	 */
+	public static function customize_shipping_fields( $fields ) {
+		unset( $fields['shipping_state'] );
+		return $fields;
 	}
 
 	/**
@@ -88,7 +125,10 @@ class WM_Checkout {
 	 * @return array
 	 */
 	public static function customize_checkout_fields( $fields ) {
+		unset( $fields['billing']['billing_country'] );
 		unset( $fields['billing']['billing_state'] );
+		unset( $fields['shipping']['shipping_country'] );
+		unset( $fields['shipping']['shipping_state'] );
 
 		if ( isset( $fields['billing']['billing_postcode'] ) ) {
 			$fields['billing']['billing_postcode']['class']    = array( 'form-row-first' );
@@ -118,6 +158,29 @@ class WM_Checkout {
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Force-hide leaked state fields if WooCommerce rebuilds them later.
+	 *
+	 * @param array  $args Form field args.
+	 * @param string $key Field key.
+	 * @param mixed  $value Field value.
+	 * @return array
+	 */
+	public static function force_hidden_state_fields( $args, $key, $value ) {
+		unset( $value );
+
+		if ( ! in_array( (string) $key, array( 'billing_state', 'shipping_state' ), true ) ) {
+			return $args;
+		}
+
+		$args['type']     = 'hidden';
+		$args['required'] = false;
+		$args['class']    = array( 'wm-force-hidden' );
+		$args['label']    = '';
+
+		return $args;
 	}
 
 	/**
