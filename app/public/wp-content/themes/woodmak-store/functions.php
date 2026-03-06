@@ -273,6 +273,27 @@ function ws_register_customizer_settings( $wp_customize ) {
 			)
 		)
 	);
+
+	$wp_customize->add_section(
+		'ws_contact_details',
+		array(
+			'title'       => __( 'Contact Details', 'woodmak-store' ),
+			'priority'    => 38,
+			'description' => __( 'Manage shared contact details used in the contact page and footer.', 'woodmak-store' ),
+		)
+	);
+
+	ws_register_contact_setting( $wp_customize, 'ws_contact_brand_title', __( 'Brand Title', 'woodmak-store' ), 'text', 5, 'Woodmak' );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_page_heading', __( 'Page Heading', 'woodmak-store' ), 'text', 6, ws_unicode_string( '\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u0438\u0440\u0430\u0458\u0442\u0435 \u043d\u0435' ) );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_address_label', __( 'Address Label', 'woodmak-store' ), 'text', 7, ws_unicode_string( '\u0410\u0414\u0420\u0415\u0421\u0410' ) );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_address_text', __( 'Address Text', 'woodmak-store' ), 'textarea', 8, 'Kachanadki Pat bb, Skopje, Macedonia' );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_phone_label', __( 'Phone Label', 'woodmak-store' ), 'text', 9, ws_unicode_string( '\u0422\u0415\u041b\u0415\u0424\u041e\u041d' ) );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_phone_text', __( 'Phone Number', 'woodmak-store' ), 'text', 10, '+389 75 317 372' );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_email_label', __( 'Email Label', 'woodmak-store' ), 'text', 11, ws_unicode_string( '\u0415\u041c\u0410\u0418\u041b' ) );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_email_text', __( 'Email Address', 'woodmak-store' ), 'email', 12, 'info@woodmak.mk' );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_social_label', __( 'Social Label', 'woodmak-store' ), 'text', 13, ws_unicode_string( '\u0421\u041b\u0415\u0414\u0418 \u041d\u0415' ) );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_facebook_url', __( 'Facebook URL', 'woodmak-store' ), 'url', 14, 'https://www.facebook.com/' );
+	ws_register_contact_setting( $wp_customize, 'ws_contact_instagram_url', __( 'Instagram URL', 'woodmak-store' ), 'url', 15, 'https://www.instagram.com/' );
 }
 
 /**
@@ -334,6 +355,61 @@ function ws_register_homepage_visual_setting( $wp_customize, $key, $label, $type
 			'priority' => $priority,
 		)
 	);
+}
+
+/**
+ * Register a contact detail setting and control.
+ *
+ * @param WP_Customize_Manager $wp_customize Customizer manager.
+ * @param string               $key Setting key.
+ * @param string               $label Field label.
+ * @param string               $type Field type.
+ * @param int                  $priority Priority.
+ * @param string               $default Default value.
+ * @return void
+ */
+function ws_register_contact_setting( $wp_customize, $key, $label, $type, $priority, $default = '' ) {
+	$sanitize_callback = 'sanitize_text_field';
+	if ( 'textarea' === $type ) {
+		$sanitize_callback = 'sanitize_textarea_field';
+	}
+	if ( 'url' === $type ) {
+		$sanitize_callback = 'esc_url_raw';
+	}
+	if ( 'email' === $type ) {
+		$sanitize_callback = 'sanitize_email';
+	}
+
+	$wp_customize->add_setting(
+		$key,
+		array(
+			'default'           => $default,
+			'sanitize_callback' => $sanitize_callback,
+			'transport'         => 'refresh',
+		)
+	);
+
+	$wp_customize->add_control(
+		$key . '_control',
+		array(
+			'label'    => $label,
+			'section'  => 'ws_contact_details',
+			'settings' => $key,
+			'type'     => 'email' === $type ? 'email' : $type,
+			'priority' => $priority,
+		)
+	);
+}
+
+/**
+ * Decode ASCII-safe unicode escape strings.
+ *
+ * @param string $escaped Escaped unicode string.
+ * @return string
+ */
+function ws_unicode_string( $escaped ) {
+	$decoded = json_decode( '"' . $escaped . '"' );
+	return is_string( $decoded ) ? $decoded : (string) $escaped;
 }
 
 /**
@@ -456,72 +532,165 @@ function ws_get_theme_mod_image_url( $key ) {
 }
 
 /**
+ * Return shared contact details.
+ *
+ * @return array
+ */
+function ws_get_contact_details() {
+	$phone_text   = ws_get_theme_mod_text( 'ws_contact_phone_text', '+389 75 317 372' );
+	$phone_href   = preg_replace( '/[^0-9+]/', '', $phone_text );
+	$email_text   = sanitize_email( ws_get_theme_mod_text( 'ws_contact_email_text', 'info@woodmak.mk' ) );
+	$address_text = sanitize_textarea_field( (string) get_theme_mod( 'ws_contact_address_text', 'Kachanadki Pat bb, Skopje, Macedonia' ) );
+
+	return array(
+		'brand_title'   => ws_get_theme_mod_text( 'ws_contact_brand_title', 'Woodmak' ),
+		'page_heading'  => ws_get_theme_mod_text( 'ws_contact_page_heading', ws_unicode_string( '\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u0438\u0440\u0430\u0458\u0442\u0435 \u043d\u0435' ) ),
+		'address_label' => ws_get_theme_mod_text( 'ws_contact_address_label', ws_unicode_string( '\u0410\u0414\u0420\u0415\u0421\u0410' ) ),
+		'address_text'  => ws_translate_dynamic_text( 'ws_contact_address_text', $address_text ),
+		'phone_label'   => ws_get_theme_mod_text( 'ws_contact_phone_label', ws_unicode_string( '\u0422\u0415\u041b\u0415\u0424\u041e\u041d' ) ),
+		'phone_text'    => $phone_text,
+		'phone_href'    => '' !== $phone_href ? 'tel:' . $phone_href : '',
+		'email_label'   => ws_get_theme_mod_text( 'ws_contact_email_label', ws_unicode_string( '\u0415\u041c\u0410\u0418\u041b' ) ),
+		'email_text'    => $email_text,
+		'email_href'    => '' !== $email_text ? 'mailto:' . $email_text : '',
+		'social_label'  => ws_get_theme_mod_text( 'ws_contact_social_label', ws_unicode_string( '\u0421\u041b\u0415\u0414\u0418 \u041d\u0415' ) ),
+		'facebook_url'  => ws_get_theme_mod_url( 'ws_contact_facebook_url', 'https://www.facebook.com/' ),
+		'instagram_url' => ws_get_theme_mod_url( 'ws_contact_instagram_url', 'https://www.instagram.com/' ),
+	);
+}
+
+/**
  * Get homepage products for a given tab key.
  *
  * @param string $tab_key Tab key.
  * @param int    $limit Products count.
+ * @param array  $exclude_ids Product IDs to exclude.
  * @return array
  */
-function ws_get_home_tab_products( $tab_key, $limit = 8 ) {
+function ws_get_home_tab_products( $tab_key, $limit = 8, $exclude_ids = array() ) {
 	if ( ! function_exists( 'wc_get_products' ) ) {
 		return array();
 	}
 
-	$limit = max( 1, absint( $limit ) );
-	$args  = array(
+	$limit       = max( 1, absint( $limit ) );
+	$exclude_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $exclude_ids ) ) ) );
+	$args        = array(
 		'status' => 'publish',
 		'limit'  => $limit,
 		'return' => 'objects',
 	);
 
-	if ( 'special-offers' === $tab_key || 'clearance-sale' === $tab_key ) {
-		$sale_ids = array_values( array_filter( array_map( 'absint', wc_get_product_ids_on_sale() ) ) );
-		if ( ! empty( $sale_ids ) ) {
-			$normalized_sale_ids = array();
-			foreach ( $sale_ids as $sale_id ) {
-				$sale_product = wc_get_product( $sale_id );
-				if ( ! $sale_product instanceof WC_Product ) {
-					continue;
-				}
-				if ( $sale_product->is_type( 'variation' ) ) {
-					$normalized_sale_ids[] = absint( $sale_product->get_parent_id() );
-					continue;
-				}
-				$normalized_sale_ids[] = absint( $sale_product->get_id() );
-			}
-			$sale_ids = array_values( array_unique( array_filter( $normalized_sale_ids ) ) );
-		}
-		if ( empty( $sale_ids ) ) {
-			$args['orderby'] = 'date';
-			$args['order']   = 'DESC';
-			return wc_get_products( $args );
-		}
-		$args['include'] = array_slice( $sale_ids, 0, $limit );
-		$args['orderby'] = 'include';
-		return wc_get_products( $args );
-	}
-
 	if ( 'recommended' === $tab_key ) {
-		$args['featured'] = true;
-		$args['orderby']  = 'date';
-		$args['order']    = 'DESC';
-		$products         = wc_get_products( $args );
-		if ( ! empty( $products ) ) {
-			return $products;
-		}
-		$args['featured'] = false;
-		return wc_get_products( $args );
+		return ws_get_random_home_products( $limit, $exclude_ids );
 	}
 
 	if ( 'bestsellers' === $tab_key ) {
-		$args['orderby'] = 'total_sales';
-		$args['order']   = 'DESC';
-		return wc_get_products( $args );
+		$bestseller_ids = wc_get_products(
+			array(
+				'status'  => 'publish',
+				'limit'   => max( $limit * 6, 24 ),
+				'return'  => 'ids',
+				'exclude' => $exclude_ids,
+				'orderby' => 'total_sales',
+				'order'   => 'DESC',
+			)
+		);
+
+		$bestseller_ids = array_values(
+			array_filter(
+				array_unique( array_map( 'absint', (array) $bestseller_ids ) ),
+				static function ( $product_id ) {
+					return (int) get_post_meta( absint( $product_id ), 'total_sales', true ) > 0;
+				}
+			)
+		);
+
+		if ( ! empty( $bestseller_ids ) ) {
+			shuffle( $bestseller_ids );
+		}
+
+		$selected_ids = array_slice( $bestseller_ids, 0, $limit );
+		if ( count( $selected_ids ) < $limit ) {
+			$fallback_ids = ws_get_random_home_product_ids( $limit - count( $selected_ids ), array_merge( $exclude_ids, $selected_ids ) );
+			$selected_ids = array_values( array_unique( array_merge( $selected_ids, $fallback_ids ) ) );
+		}
+
+		return ws_get_home_products_by_ids( $selected_ids );
+	}
+
+	if ( ! empty( $exclude_ids ) ) {
+		$args['exclude'] = $exclude_ids;
 	}
 
 	$args['orderby'] = 'date';
 	$args['order']   = 'DESC';
 	return wc_get_products( $args );
+}
+
+/**
+ * Load products by ID while preserving order.
+ *
+ * @param array $product_ids Product IDs.
+ * @return array
+ */
+function ws_get_home_products_by_ids( $product_ids ) {
+	if ( ! function_exists( 'wc_get_products' ) ) {
+		return array();
+	}
+
+	$product_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $product_ids ) ) ) );
+	if ( empty( $product_ids ) ) {
+		return array();
+	}
+
+	return wc_get_products(
+		array(
+			'status'  => 'publish',
+			'limit'   => count( $product_ids ),
+			'return'  => 'objects',
+			'include' => $product_ids,
+			'orderby' => 'include',
+		)
+	);
+}
+
+/**
+ * Get random product IDs for homepage tabs.
+ *
+ * @param int   $limit Product count.
+ * @param array $exclude_ids Product IDs to exclude.
+ * @return array
+ */
+function ws_get_random_home_product_ids( $limit, $exclude_ids = array() ) {
+	if ( ! function_exists( 'wc_get_products' ) ) {
+		return array();
+	}
+
+	$limit       = max( 1, absint( $limit ) );
+	$exclude_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $exclude_ids ) ) ) );
+
+	$product_ids = wc_get_products(
+		array(
+			'status'  => 'publish',
+			'limit'   => max( $limit * 6, 24 ),
+			'return'  => 'ids',
+			'exclude' => $exclude_ids,
+			'orderby' => 'rand',
+		)
+	);
+
+	return array_slice( array_values( array_unique( array_filter( array_map( 'absint', (array) $product_ids ) ) ) ), 0, $limit );
+}
+
+/**
+ * Get random products for homepage tabs.
+ *
+ * @param int   $limit Product count.
+ * @param array $exclude_ids Product IDs to exclude.
+ * @return array
+ */
+function ws_get_random_home_products( $limit, $exclude_ids = array() ) {
+	return ws_get_home_products_by_ids( ws_get_random_home_product_ids( $limit, $exclude_ids ) );
 }
 
 /**
@@ -574,6 +743,50 @@ function ws_get_ranked_product_categories( $limit = 0, $offset = 0 ) {
 	if ( $offset > 0 || $limit > 0 ) {
 		return array_slice( $categories, $offset, $limit ? $limit : null );
 	}
+
+	return $categories;
+}
+
+/**
+ * Get all non-empty WooCommerce categories for the header megamenu.
+ *
+ * @return array
+ */
+function ws_get_megamenu_product_categories() {
+	if ( ! taxonomy_exists( 'product_cat' ) ) {
+		return array();
+	}
+
+	$terms = get_terms(
+		array(
+			'taxonomy'   => 'product_cat',
+			'hide_empty' => true,
+		)
+	);
+
+	if ( is_wp_error( $terms ) || empty( $terms ) ) {
+		return array();
+	}
+
+	$categories = array();
+	foreach ( $terms as $term ) {
+		if ( ! $term instanceof WP_Term ) {
+			continue;
+		}
+
+		if ( 'uncategorized' === sanitize_title( $term->slug ) ) {
+			continue;
+		}
+
+		$categories[] = $term;
+	}
+
+	usort(
+		$categories,
+		static function ( $left, $right ) {
+			return strcasecmp( $left->name, $right->name );
+		}
+	);
 
 	return $categories;
 }

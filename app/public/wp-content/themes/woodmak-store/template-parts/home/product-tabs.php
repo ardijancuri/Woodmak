@@ -4,17 +4,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $tabs = array(
-	'special-offers' => __( 'Special Offers', 'woodmak-store' ),
-	'new'            => __( 'New', 'woodmak-store' ),
-	'clearance-sale' => __( 'Clearance Sale', 'woodmak-store' ),
-	'recommended'    => __( 'Recommended', 'woodmak-store' ),
-	'bestsellers'    => __( 'Bestsellers', 'woodmak-store' ),
+	'new'         => __( 'New', 'woodmak-store' ),
+	'recommended' => __( 'Recommended', 'woodmak-store' ),
+	'bestsellers' => __( 'Bestsellers', 'woodmak-store' ),
 );
 
-$products_by_tab = array();
-foreach ( $tabs as $tab_key => $tab_label ) {
-	$products_by_tab[ $tab_key ] = ws_get_home_tab_products( $tab_key, 5 );
-}
+$products_by_tab                 = array();
+$products_by_tab['new']          = ws_get_home_tab_products( 'new', 5 );
+$products_by_tab['recommended']  = ws_get_home_tab_products( 'recommended', 5 );
+$recommended_ids                 = array_values(
+	array_filter(
+		array_map(
+			static function ( $product ) {
+				return $product instanceof WC_Product ? absint( $product->get_id() ) : 0;
+			},
+			$products_by_tab['recommended']
+		)
+	)
+);
+$products_by_tab['bestsellers']  = ws_get_home_tab_products( 'bestsellers', 5, $recommended_ids );
 
 $has_products = false;
 foreach ( $products_by_tab as $products ) {

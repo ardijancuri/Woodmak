@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$mega_categories = ws_get_ranked_product_categories( 10, 0 );
+$mega_categories = ws_get_megamenu_product_categories();
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -112,18 +112,13 @@ $mega_categories = ws_get_ranked_product_categories( 10, 0 );
 					<ul class="ws-category-mega__grid">
 						<?php foreach ( $mega_categories as $category ) : ?>
 							<?php
-							$category_url   = get_term_link( $category );
-							$category_image = ws_get_product_category_image_url( $category );
+							$category_url = get_term_link( $category );
 							if ( is_wp_error( $category_url ) ) {
 								continue;
 							}
-							$style = '';
-							if ( $category_image ) {
-								$style = ' style="background-image:url(' . esc_url( $category_image ) . ');"';
-							}
 							?>
 							<li class="ws-category-mega__item">
-								<a class="ws-category-mega__card" href="<?php echo esc_url( $category_url ); ?>"<?php echo $style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+								<a class="ws-category-mega__card" href="<?php echo esc_url( $category_url ); ?>">
 									<span><?php echo esc_html( $category->name ); ?></span>
 								</a>
 							</li>
@@ -153,6 +148,35 @@ $mega_categories = ws_get_ranked_product_categories( 10, 0 );
 					</svg>
 				</span>
 			</button>
+		</div>
+		<div class="ws-mobile-nav__categories">
+			<button class="ws-mobile-nav__categories-toggle" type="button" data-ws-mobile-categories-toggle aria-expanded="false" aria-controls="ws-mobile-categories-panel">
+				<span><?php esc_html_e( 'Categories', 'woodmak-store' ); ?></span>
+				<span class="ws-mobile-nav__categories-icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+						<path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+					</svg>
+				</span>
+			</button>
+			<div id="ws-mobile-categories-panel" class="ws-mobile-nav__categories-panel" data-ws-mobile-categories-panel hidden>
+				<?php if ( ! empty( $mega_categories ) ) : ?>
+					<ul class="ws-mobile-nav__categories-list">
+						<?php foreach ( $mega_categories as $category ) : ?>
+							<?php
+							$category_url = get_term_link( $category );
+							if ( is_wp_error( $category_url ) ) {
+								continue;
+							}
+							?>
+							<li>
+								<a href="<?php echo esc_url( $category_url ); ?>"><?php echo esc_html( $category->name ); ?></a>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				<?php else : ?>
+					<p class="ws-mobile-nav__categories-empty"><?php esc_html_e( 'No categories found yet.', 'woodmak-store' ); ?></p>
+				<?php endif; ?>
+			</div>
 		</div>
 		<nav class="ws-mobile-nav__menu" data-ws-nav-links aria-label="<?php esc_attr_e( 'Mobile category navigation', 'woodmak-store' ); ?>">
 			<?php
