@@ -95,13 +95,13 @@ $mega_categories = ws_get_megamenu_product_categories();
 					</span>
 					<span><?php esc_html_e( 'Categories', 'woodmak-store' ); ?></span>
 				</button>
-				<nav id="ws-main-nav" class="ws-nav" data-ws-nav-links aria-label="<?php esc_attr_e( 'Category navigation', 'woodmak-store' ); ?>">
+				<nav id="ws-main-nav" class="ws-nav" data-ws-nav-links aria-label="<?php esc_attr_e( 'Main navigation', 'woodmak-store' ); ?>">
 					<?php
 					wp_nav_menu(
 						array(
-							'theme_location' => 'category',
+							'theme_location' => 'primary',
 							'container'      => false,
-							'fallback_cb'    => 'wp_page_menu',
+							'fallback_cb'    => false,
 						)
 					);
 					?>
@@ -178,13 +178,13 @@ $mega_categories = ws_get_megamenu_product_categories();
 				<?php endif; ?>
 			</div>
 		</div>
-		<nav class="ws-mobile-nav__menu" data-ws-nav-links aria-label="<?php esc_attr_e( 'Mobile category navigation', 'woodmak-store' ); ?>">
+		<nav class="ws-mobile-nav__menu" data-ws-nav-links aria-label="<?php esc_attr_e( 'Mobile main navigation', 'woodmak-store' ); ?>">
 			<?php
 			wp_nav_menu(
 				array(
-					'theme_location' => 'category',
+					'theme_location' => 'primary',
 					'container'      => false,
-					'fallback_cb'    => 'wp_page_menu',
+					'fallback_cb'    => false,
 				)
 			);
 			?>

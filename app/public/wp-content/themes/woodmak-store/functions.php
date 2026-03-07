@@ -241,6 +241,22 @@ function ws_register_customizer_settings( $wp_customize ) {
 		'image',
 		17
 	);
+	ws_register_homepage_visual_setting(
+		$wp_customize,
+		'ws_home_category_tabs_section_a_title',
+		__( 'Category Tabs Section 1 Title', 'woodmak-store' ),
+		'text',
+		18,
+		__( 'Category Highlights', 'woodmak-store' )
+	);
+	ws_register_homepage_visual_setting(
+		$wp_customize,
+		'ws_home_category_tabs_section_b_title',
+		__( 'Category Tabs Section 2 Title', 'woodmak-store' ),
+		'text',
+		19,
+		__( 'More Category Picks', 'woodmak-store' )
+	);
 
 	$wp_customize->add_section(
 		'ws_footer_branding',

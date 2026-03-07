@@ -15,12 +15,12 @@ $section_b_categories = ws_select_product_categories( $ranked_categories, 15, 5,
 $sections = array(
 	array(
 		'id'         => 'ws-home-category-tabs-a',
-		'title'      => __( 'Category Highlights', 'woodmak-store' ),
+		'title'      => ws_get_theme_mod_text( 'ws_home_category_tabs_section_a_title', __( 'Category Highlights', 'woodmak-store' ) ),
 		'categories' => $section_a_categories,
 	),
 	array(
 		'id'         => 'ws-home-category-tabs-b',
-		'title'      => __( 'More Category Picks', 'woodmak-store' ),
+		'title'      => ws_get_theme_mod_text( 'ws_home_category_tabs_section_b_title', __( 'More Category Picks', 'woodmak-store' ) ),
 		'categories' => $section_b_categories,
 	),
 );
