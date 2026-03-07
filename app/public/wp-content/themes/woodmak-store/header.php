@@ -49,7 +49,7 @@ $mega_categories = ws_get_megamenu_product_categories();
 			</form>
 			<div class="ws-header__actions">
 				<?php get_template_part( 'template-parts/components/language-switcher' ); ?>
-				<a class="ws-account-link ws-icon-link" href="<?php echo esc_url( home_url( '/my-account/' ) ); ?>">
+				<a class="ws-account-link ws-icon-link" href="<?php echo esc_url( home_url( '/мој-профил/' ) ); ?>">
 					<span class="ws-icon-link__icon" aria-hidden="true">
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" focusable="false">
 							<path d="M20 21C20 17.6863 16.4183 15 12 15C7.58172 15 4 17.6863 4 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
