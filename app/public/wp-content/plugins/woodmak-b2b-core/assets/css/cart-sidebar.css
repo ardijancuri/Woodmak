@@ -107,9 +107,21 @@ body.wm-cart-open {
   margin: 0 0 0.7rem;
 }
 
-.wm-cart-sidebar__continue {
-  width: 100%;
-  justify-content: center;
+#wm-cart-sidebar a.button.alt.wm-cart-sidebar__continue,
+#wm-cart-sidebar .wm-cart-sidebar__empty a.button.alt.wm-cart-sidebar__continue {
+  background: var(--wm-primary) !important;
+  border-color: var(--wm-primary) !important;
+  color: var(--wm-on-primary) !important;
+  font-weight: 500 !important;
+}
+
+#wm-cart-sidebar a.button.alt.wm-cart-sidebar__continue:hover,
+#wm-cart-sidebar a.button.alt.wm-cart-sidebar__continue:focus,
+#wm-cart-sidebar .wm-cart-sidebar__empty a.button.alt.wm-cart-sidebar__continue:hover,
+#wm-cart-sidebar .wm-cart-sidebar__empty a.button.alt.wm-cart-sidebar__continue:focus {
+  border-color: var(--wm-primary-strong) !important;
+  background: var(--wm-primary-strong) !important;
+  color: var(--wm-on-primary) !important;
 }
 
 .wm-cart-sidebar__items {
