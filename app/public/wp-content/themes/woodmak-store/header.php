@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $mega_categories = ws_get_megamenu_product_categories();
+$shop_url        = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -49,7 +50,7 @@ $mega_categories = ws_get_megamenu_product_categories();
 			</form>
 			<div class="ws-header__actions">
 				<?php get_template_part( 'template-parts/components/language-switcher' ); ?>
-				<a class="ws-account-link ws-icon-link" href="<?php echo esc_url( home_url( '/my-account/' ) ); ?>">
+				<a class="ws-account-link ws-icon-link ws-header-action ws-header-action--account" href="<?php echo esc_url( home_url( '/my-account/' ) ); ?>">
 					<span class="ws-icon-link__icon" aria-hidden="true">
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" focusable="false">
 							<path d="M20 21C20 17.6863 16.4183 15 12 15C7.58172 15 4 17.6863 4 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -58,13 +59,24 @@ $mega_categories = ws_get_megamenu_product_categories();
 					</span>
 					<span class="ws-icon-link__label"><?php esc_html_e( 'Account', 'woodmak-store' ); ?></span>
 				</a>
-				<button class="ws-cart-toggle ws-icon-link" data-wm-cart-open type="button">
+				<a class="ws-catalog-link ws-icon-link ws-header-action ws-header-action--catalog" href="<?php echo esc_url( $shop_url ); ?>">
+					<span class="ws-icon-link__icon" aria-hidden="true">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" focusable="false">
+							<path d="M12 6.1C10.9 5.17 9.32 4.6 7.6 4.6H4.95C4.43 4.6 4 5.03 4 5.55V17.3C4 17.82 4.43 18.25 4.95 18.25H7.6C9.32 18.25 10.9 18.82 12 19.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+							<path d="M12 6.1C13.1 5.17 14.68 4.6 16.4 4.6H19.05C19.57 4.6 20 5.03 20 5.55V17.3C20 17.82 19.57 18.25 19.05 18.25H16.4C14.68 18.25 13.1 18.82 12 19.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+							<path d="M12 6.1V19.15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+						</svg>
+					</span>
+					<span class="ws-icon-link__label"><?php echo esc_html( ws_unicode_string( '\u041a\u0430\u0442\u0430\u043b\u043e\u0433' ) ); ?></span>
+				</a>
+				<button class="ws-cart-toggle ws-icon-link ws-header-action ws-header-action--cart" data-wm-cart-open type="button">
 					<span class="ws-icon-link__icon" aria-hidden="true">
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" focusable="false">
 							<path d="M3 4H5L7.2 14.2C7.36781 14.9681 8.04995 15.5 8.83618 15.5H17.7C18.4862 15.5 19.1684 14.9681 19.3362 14.2L21 7.5H6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
 							<circle cx="9.5" cy="19.5" r="1.5" fill="currentColor"></circle>
 							<circle cx="17.5" cy="19.5" r="1.5" fill="currentColor"></circle>
 						</svg>
+						<?php echo ws_get_header_cart_count_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</span>
 					<span class="ws-icon-link__label"><?php esc_html_e( 'Cart', 'woodmak-store' ); ?></span>
 				</button>

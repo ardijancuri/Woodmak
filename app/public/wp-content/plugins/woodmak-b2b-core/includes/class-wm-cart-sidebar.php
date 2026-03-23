@@ -189,14 +189,20 @@ class WM_Cart_Sidebar {
 		}
 		echo '</ul>';
 
-		$discount_total = (float) WC()->cart->get_discount_total() + (float) WC()->cart->get_discount_tax();
+		$discount_total    = (float) WC()->cart->get_discount_total() + (float) WC()->cart->get_discount_tax();
+		$shipping_summary  = self::get_sidebar_shipping_summary();
+		$shipping_total    = $shipping_summary['html'];
+		$sidebar_total_html = self::get_sidebar_total_html( $shipping_summary['total_adjustment'] );
 		echo '<div class="wm-cart-sidebar__totals">';
 		echo '<dl>';
 		echo '<div><dt>' . esc_html__( 'Subtotal', 'woodmak-b2b-core' ) . '</dt><dd>' . wp_kses_post( WC()->cart->get_cart_subtotal() ) . '</dd></div>';
 		if ( $discount_total > 0 ) {
 			echo '<div><dt>' . esc_html__( 'Discount', 'woodmak-b2b-core' ) . '</dt><dd>-' . wp_kses_post( wc_price( $discount_total ) ) . '</dd></div>';
 		}
-		echo '<div class="wm-cart-sidebar__totals-final"><dt>' . esc_html__( 'Total', 'woodmak-b2b-core' ) . '</dt><dd>' . wp_kses_post( WC()->cart->get_total() ) . '</dd></div>';
+		if ( '' !== $shipping_total ) {
+			echo '<div><dt>' . esc_html__( 'Shipping', 'woodmak-b2b-core' ) . '</dt><dd>' . wp_kses_post( $shipping_total ) . '</dd></div>';
+		}
+		echo '<div class="wm-cart-sidebar__totals-final"><dt>' . esc_html__( 'Total', 'woodmak-b2b-core' ) . '</dt><dd>' . wp_kses_post( $sidebar_total_html ) . '</dd></div>';
 		echo '</dl>';
 		echo '</div>';
 		echo '<div class="wm-cart-sidebar__actions">';
@@ -206,6 +212,119 @@ class WM_Cart_Sidebar {
 
 		self::render_suggestions();
 		echo '</div>';
+	}
+
+	/**
+	 * Get the sidebar shipping amount and any total adjustment needed for display.
+	 *
+	 * @return array{html:string,total_adjustment:float}
+	 */
+	private static function get_sidebar_shipping_summary() {
+		if ( ! WC()->cart || ! WC()->cart->needs_shipping() ) {
+			return array(
+				'html'             => '',
+				'total_adjustment' => 0.0,
+			);
+		}
+
+		$packages = WC()->shipping()->get_packages();
+		$has_rates = false;
+
+		foreach ( $packages as $package ) {
+			if ( ! empty( $package['rates'] ) && is_array( $package['rates'] ) ) {
+				$has_rates = true;
+				break;
+			}
+		}
+
+		if ( ! $has_rates ) {
+			$packages = WC()->shipping()->calculate_shipping( WC()->cart->get_shipping_packages() );
+		}
+
+		$shipping_total     = 0.0;
+		$shipping_tax_total = 0.0;
+		$resolved_rate      = false;
+
+		foreach ( $packages as $index => $package ) {
+			if ( empty( $package['rates'] ) || ! is_array( $package['rates'] ) ) {
+				continue;
+			}
+
+			$chosen_method = wc_get_chosen_shipping_method_for_package( $index, $package );
+			$rate          = ( $chosen_method && isset( $package['rates'][ $chosen_method ] ) )
+				? $package['rates'][ $chosen_method ]
+				: current( $package['rates'] );
+
+			if ( ! $rate instanceof WC_Shipping_Rate ) {
+				continue;
+			}
+
+			$resolved_rate      = true;
+			$shipping_total     += (float) $rate->get_cost();
+			$shipping_tax_total += (float) $rate->get_shipping_tax();
+		}
+
+		if ( ! $resolved_rate ) {
+			return array(
+				'html'             => esc_html__( 'Calculated at checkout', 'woodmak-b2b-core' ),
+				'total_adjustment' => 0.0,
+			);
+		}
+
+		$total_adjustment = 0.0;
+		if ( ! WC()->cart->has_calculated_shipping() && 0.0 === (float) WC()->cart->get_shipping_total() && 0.0 === (float) WC()->cart->get_shipping_tax() ) {
+			$total_adjustment = $shipping_total + $shipping_tax_total;
+		}
+
+		return array(
+			'html'             => self::format_sidebar_shipping_total( $shipping_total, $shipping_tax_total ),
+			'total_adjustment' => $total_adjustment,
+		);
+	}
+
+	/**
+	 * Format a shipping amount using WooCommerce cart display rules.
+	 *
+	 * @param float $shipping_total Shipping amount before tax.
+	 * @param float $shipping_tax_total Shipping tax amount.
+	 * @return string
+	 */
+	private static function format_sidebar_shipping_total( $shipping_total, $shipping_tax_total ) {
+		if ( $shipping_total <= 0 && $shipping_tax_total <= 0 ) {
+			return __( 'Free!', 'woocommerce' );
+		}
+
+		if ( WC()->cart->display_prices_including_tax() ) {
+			$total = wc_price( $shipping_total + $shipping_tax_total );
+
+			if ( $shipping_tax_total > 0 && ! wc_prices_include_tax() ) {
+				$total .= ' <small class="tax_label">' . WC()->countries->inc_tax_or_vat() . '</small>';
+			}
+
+			return $total;
+		}
+
+		$total = wc_price( $shipping_total );
+
+		if ( $shipping_tax_total > 0 && wc_prices_include_tax() ) {
+			$total .= ' <small class="tax_label">' . WC()->countries->ex_tax_or_vat() . '</small>';
+		}
+
+		return $total;
+	}
+
+	/**
+	 * Get the sidebar total HTML, optionally including a display-only shipping adjustment.
+	 *
+	 * @param float $total_adjustment Extra amount to add to the displayed total.
+	 * @return string
+	 */
+	private static function get_sidebar_total_html( $total_adjustment = 0.0 ) {
+		if ( $total_adjustment <= 0 ) {
+			return WC()->cart->get_total();
+		}
+
+		return apply_filters( 'woocommerce_cart_total', wc_price( (float) WC()->cart->get_total( 'edit' ) + $total_adjustment ) );
 	}
 
 	/**

@@ -130,6 +130,7 @@ class WM_Catalog_Filters {
 
 		$current = wp_unslash( $_GET );
 		$selected_categories = self::get_csv_param( $current, 'wm_cat' );
+		$has_category_param  = ! empty( $selected_categories );
 		if ( empty( $selected_categories ) && is_product_category() ) {
 			$queried = get_queried_object();
 			if ( $queried instanceof WP_Term ) {
@@ -155,6 +156,7 @@ class WM_Catalog_Filters {
 		if ( is_wp_error( $colors ) ) {
 			$colors = array();
 		}
+		$current_link_params = self::get_preserved_filter_params( $current, array( 'wm_cat', 'paged', 'product-page' ) );
 
 		$reset_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
 		if ( is_product_category() ) {
@@ -168,6 +170,11 @@ class WM_Catalog_Filters {
 		}
 		?>
 		<form class="wm-catalog-filters" method="get" data-wm-catalog-filters>
+			<?php if ( $has_category_param ) : ?>
+				<?php foreach ( $selected_categories as $selected_category ) : ?>
+					<input type="hidden" name="wm_cat[]" value="<?php echo esc_attr( $selected_category ); ?>" />
+				<?php endforeach; ?>
+			<?php endif; ?>
 			<div class="wm-filter-grid">
 				<div class="wm-filter-section" data-wm-filter-section>
 					<button class="wm-filter-section__head" type="button" data-wm-filter-toggle aria-expanded="true" aria-controls="wm-filter-cat">
@@ -175,13 +182,20 @@ class WM_Catalog_Filters {
 						<span class="wm-filter-section__chevron" aria-hidden="true"></span>
 					</button>
 					<div id="wm-filter-cat" class="wm-filter-section__body" data-wm-filter-body>
-						<div class="wm-filter-checkbox-list">
+						<div class="wm-filter-link-list">
 							<?php foreach ( $terms as $term ) : ?>
-								<?php $term_slug = sanitize_title( $term->slug ); ?>
-								<label class="wm-filter-check">
-									<input type="checkbox" name="wm_cat[]" value="<?php echo esc_attr( $term_slug ); ?>" <?php checked( in_array( $term_slug, $selected_categories, true ) ); ?> />
-									<span><?php echo esc_html( $term->name ); ?></span>
-								</label>
+								<?php
+								$term_slug  = sanitize_title( $term->slug );
+								$term_link  = get_term_link( $term );
+								$is_active  = in_array( $term_slug, $selected_categories, true );
+								if ( is_wp_error( $term_link ) ) {
+									continue;
+								}
+								$link_url = self::build_filter_url( $term_link, $current_link_params );
+								?>
+								<a class="wm-filter-link<?php echo $is_active ? ' is-active' : ''; ?>" href="<?php echo esc_url( $link_url ); ?>" data-wm-category-link data-wm-category-base-url="<?php echo esc_url( $term_link ); ?>"<?php echo $is_active ? ' aria-current="page"' : ''; ?>>
+									<?php echo esc_html( $term->name ); ?>
+								</a>
 							<?php endforeach; ?>
 						</div>
 					</div>
@@ -296,6 +310,73 @@ class WM_Catalog_Filters {
 				'type'    => 'NUMERIC',
 			);
 		}
+	}
+
+	/**
+	 * Build a query-preserving filter URL.
+	 *
+	 * @param string $base_url Base URL.
+	 * @param array  $params Query params.
+	 * @return string
+	 */
+	private static function build_filter_url( $base_url, $params = array() ) {
+		$base_url = esc_url_raw( (string) $base_url );
+		if ( '' === $base_url || empty( $params ) || ! is_array( $params ) ) {
+			return $base_url;
+		}
+
+		return add_query_arg( $params, $base_url );
+	}
+
+	/**
+	 * Keep current filter params while excluding specific keys.
+	 *
+	 * @param array $params Current params.
+	 * @param array $exclude_keys Keys to exclude.
+	 * @return array
+	 */
+	private static function get_preserved_filter_params( $params, $exclude_keys = array() ) {
+		$params       = is_array( $params ) ? $params : array();
+		$exclude_keys = array_map( 'strval', (array) $exclude_keys );
+		$preserved    = array();
+
+		foreach ( $params as $key => $value ) {
+			$key = (string) $key;
+			if ( in_array( $key, $exclude_keys, true ) || 0 === strpos( $key, 'wm_cat' ) ) {
+				continue;
+			}
+
+			if ( is_array( $value ) ) {
+				$items = array();
+				foreach ( $value as $item ) {
+					if ( ! is_scalar( $item ) ) {
+						continue;
+					}
+
+					$item = sanitize_text_field( (string) wp_unslash( $item ) );
+					if ( '' !== $item ) {
+						$items[] = $item;
+					}
+				}
+
+				if ( ! empty( $items ) ) {
+					$preserved[ $key ] = array_values( $items );
+				}
+
+				continue;
+			}
+
+			if ( ! is_scalar( $value ) ) {
+				continue;
+			}
+
+			$value = sanitize_text_field( (string) wp_unslash( $value ) );
+			if ( '' !== $value ) {
+				$preserved[ $key ] = $value;
+			}
+		}
+
+		return $preserved;
 	}
 
 	/**

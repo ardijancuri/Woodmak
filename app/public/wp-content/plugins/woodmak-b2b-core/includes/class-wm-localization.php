@@ -26,6 +26,7 @@ class WM_Localization {
 		add_filter( 'locale', array( __CLASS__, 'filter_locale' ), 20 );
 		add_filter( 'plugin_locale', array( __CLASS__, 'filter_plugin_locale' ), 20, 2 );
 		add_filter( 'gettext', array( __CLASS__, 'filter_gettext' ), 20, 3 );
+		add_filter( 'gettext_with_context', array( __CLASS__, 'filter_gettext_with_context' ), 20, 4 );
 		add_filter( 'ngettext', array( __CLASS__, 'filter_ngettext' ), 20, 5 );
 		add_filter( 'load_script_translations', array( __CLASS__, 'filter_script_translations' ), 20, 4 );
 		add_filter( 'the_title', array( __CLASS__, 'filter_page_titles' ), 20, 2 );
@@ -392,6 +393,7 @@ class WM_Localization {
 			'Subtotal' => 'Меѓузбир',
 			'Estimated total' => 'Проценет вкупен износ',
 			'Discount' => 'Попуст',
+			'Calculated at checkout' => self::decode_unicode_string( '\u0421\u0435 \u043f\u0440\u0435\u0441\u043c\u0435\u0442\u0443\u0432\u0430 \u043f\u0440\u0438 \u043d\u0430\u043f\u043b\u0430\u0442\u0430' ),
 			'Total' => 'Вкупно',
 			'View cart' => 'Види кошничка',
 			'You may also like' => 'Може да ви се допадне',
@@ -402,11 +404,15 @@ class WM_Localization {
 			'This product is available only for approved B2B accounts.' => 'Овој производ е достапен само за одобрени B2B профили.',
 			'This product is available only for approved B2B accounts. Submit your request to continue.' => 'Овој производ е достапен само за одобрени B2B профили. Поднесете барање за да продолжите.',
 			'VAT / Tax Number is required for B2B checkout.' => 'ЕДБ / Даночен број е задолжителен за B2B наплата.',
+			'Please enter a valid VAT / Tax Number.' => 'Внесете валиден ЕДБ / Даночен број.',
 			'First name' => 'Име',
 			'Last name' => 'Презиме',
 			'Email' => 'Е-пошта',
 			'Phone' => 'Телефон',
 			'Company name' => 'Име на компанија',
+			'Billing Details' => 'Податоци за наплата',
+			'Billing details' => 'Податоци за наплата',
+			'VAT / Tax Number' => 'ЕДБ / Даночен број',
 			'VAT / Tax number' => 'ЕДБ / Даночен број',
 			'City' => 'Град',
 			'Address' => 'Адреса',
@@ -442,6 +448,36 @@ class WM_Localization {
 			'Shop' => 'Продавница',
 			'Cart totals' => 'Вкупно во кошничка',
 			'Shipping' => 'Испорака',
+		);
+
+		return isset( $map[ $text ] ) ? $map[ $text ] : $translated;
+	}
+
+	/**
+	 * Translate selected contextual strings on Macedonian storefront.
+	 *
+	 * @param string $translated Translated text.
+	 * @param string $text Source text.
+	 * @param string $context Translation context.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	public static function filter_gettext_with_context( $translated, $text, $context, $domain ) {
+		if ( ! self::should_localize_request() || ! self::is_macedonian_request() ) {
+			return $translated;
+		}
+
+		if ( ! in_array( (string) $domain, array( 'woodmak-b2b-core', 'woocommerce' ), true ) ) {
+			return $translated;
+		}
+
+		if ( 'shipping packages' !== (string) $context ) {
+			return $translated;
+		}
+
+		$map = array(
+			'Shipment'    => 'Испорака',
+			'Shipment %d' => 'Испорака %d',
 		);
 
 		return isset( $map[ $text ] ) ? $map[ $text ] : $translated;

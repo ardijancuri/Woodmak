@@ -18,7 +18,6 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 		<?php if ( $checkout->get_checkout_fields() ) : ?>
 			<div class="ws-checkout-columns">
 				<section class="ws-checkout-col ws-checkout-col--details">
-					<h3><?php esc_html_e( 'Billing Details', 'woodmak-store' ); ?></h3>
 					<?php do_action( 'woocommerce_checkout_billing' ); ?>
 					<?php do_action( 'woocommerce_checkout_shipping' ); ?>
 				</section>

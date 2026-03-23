@@ -131,6 +131,37 @@
     });
   });
 
+  form.querySelectorAll('[data-wm-category-link]').forEach(function (link) {
+    link.addEventListener('click', function (event) {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      var baseUrl = link.getAttribute('data-wm-category-base-url') || link.getAttribute('href');
+      if (!baseUrl) {
+        return;
+      }
+
+      event.preventDefault();
+
+      var params = new URLSearchParams(window.location.search);
+      ['wm_cat', 'wm_cat[]', 'paged', 'product-page'].forEach(function (key) {
+        params.delete(key);
+      });
+
+      var targetUrl = new URL(baseUrl, window.location.origin);
+      targetUrl.search = params.toString();
+      window.location.href = targetUrl.toString();
+    });
+  });
+
   if (!window.wmCatalogFilters || !wmCatalogFilters.restUrl) {
     syncCompactPagination();
     if (mobilePaginationQuery.addEventListener) {

@@ -1010,7 +1010,10 @@ function ws_get_contrast_color( $hex_color ) {
 }
 
 add_action( 'init', 'ws_reorder_single_product_summary_price', 20 );
-add_action( 'woocommerce_single_product_summary', 'ws_render_product_specs', 25 );
+add_action( 'woocommerce_single_product_summary', 'ws_render_product_specs', 24 );
+add_action( 'woocommerce_single_product_summary', 'ws_render_product_attribute_swatches', 25 );
+add_filter( 'woocommerce_dropdown_variation_attribute_options_html', 'ws_render_variation_attribute_swatches', 20, 2 );
+add_filter( 'woocommerce_add_to_cart_fragments', 'ws_refresh_header_cart_fragments' );
 
 /**
  * Move product price below product specifications in single-product summary.
@@ -1049,4 +1052,461 @@ function ws_render_product_specs() {
 		echo '<p><strong>' . esc_html__( 'Weight:', 'woodmak-store' ) . '</strong> ' . esc_html( $weight ) . '</p>';
 	}
 	echo '</div>';
+}
+
+/**
+ * Normalize attribute thumbnail lookup values.
+ *
+ * @param string $value Raw lookup value.
+ * @return string
+ */
+function ws_normalize_attribute_thumbnail_string( $value ) {
+	$value = trim( wp_strip_all_tags( (string) $value ) );
+	if ( '' === $value ) {
+		return '';
+	}
+
+	if ( function_exists( 'mb_strtolower' ) ) {
+		$value = mb_strtolower( $value, 'UTF-8' );
+	} else {
+		$value = strtolower( $value );
+	}
+
+	$value = preg_replace( '/[\s_-]+/u', '-', $value );
+	return trim( (string) $value, '-' );
+}
+
+/**
+ * Build candidate lookup keys for attribute thumbnail matching.
+ *
+ * @param string $value Raw lookup value.
+ * @return array
+ */
+function ws_get_attribute_thumbnail_lookup_keys( $value ) {
+	$value = trim( wp_strip_all_tags( (string) $value ) );
+	if ( '' === $value ) {
+		return array();
+	}
+
+	$keys               = array();
+	$base_key           = ws_normalize_attribute_thumbnail_string( $value );
+	$slug_key           = ws_normalize_attribute_thumbnail_string( sanitize_title( $value ) );
+	$anthracite         = ws_unicode_string( '\u0430\u043d\u0442\u0440\u0430\u0446\u0438\u0442' );
+	$anthracite_alt     = ws_unicode_string( '\u0430\u043d\u0442\u0440\u0438\u0446\u0438\u0442' );
+	$atlantic           = ws_unicode_string( '\u0430\u0442\u043b\u0430\u043d\u0442\u0438\u043a' );
+	$white              = ws_unicode_string( '\u0431\u0435\u043b\u0430' );
+	$sonoma             = ws_unicode_string( '\u0441\u043e\u043d\u043e\u043c\u0430' );
+	$mona               = ws_unicode_string( '\u043c\u043e\u043d\u0430' );
+	$mint               = ws_unicode_string( '\u043c\u0438\u043d\u0442' );
+	$marble             = ws_unicode_string( '\u043c\u0435\u0440\u043c\u0435\u0440' );
+	$alias_map          = array(
+		ws_normalize_attribute_thumbnail_string( $anthracite_alt ) => array( $anthracite, 'antracit', 'anthracite' ),
+		ws_normalize_attribute_thumbnail_string( $anthracite )     => array( $anthracite_alt, 'antracit', 'anthracite' ),
+		'antracit'                                           => array( $anthracite, $anthracite_alt, 'anthracite' ),
+		'anthracite'                                         => array( $anthracite, $anthracite_alt, 'antracit' ),
+		ws_normalize_attribute_thumbnail_string( $atlantic )       => array( 'atlantik', 'atlantic' ),
+		'atlantik'                                           => array( $atlantic, 'atlantic' ),
+		'atlantic'                                           => array( $atlantic, 'atlantik' ),
+		ws_normalize_attribute_thumbnail_string( $white )          => array( 'bela', 'white' ),
+		'bela'                                               => array( $white, 'white' ),
+		'white'                                              => array( $white, 'bela' ),
+		ws_normalize_attribute_thumbnail_string( $sonoma )         => array( 'sonoma' ),
+		'sonoma'                                             => array( $sonoma ),
+		ws_normalize_attribute_thumbnail_string( $mona )           => array( 'mona' ),
+		'mona'                                               => array( $mona ),
+		ws_normalize_attribute_thumbnail_string( $mint )           => array( 'mint' ),
+		'mint'                                               => array( $mint ),
+		ws_normalize_attribute_thumbnail_string( $marble )         => array( 'mermer', 'marble' ),
+		'mermer'                                             => array( $marble, 'marble' ),
+		'marble'                                             => array( $marble, 'mermer' ),
+	);
+
+	if ( '' !== $base_key ) {
+		$keys[] = $base_key;
+	}
+
+	if ( '' !== $slug_key ) {
+		$keys[] = $slug_key;
+	}
+
+	foreach ( array( $base_key, $slug_key ) as $map_key ) {
+		if ( '' === $map_key || empty( $alias_map[ $map_key ] ) ) {
+			continue;
+		}
+
+		foreach ( $alias_map[ $map_key ] as $alias ) {
+			$alias_key = ws_normalize_attribute_thumbnail_string( $alias );
+			if ( '' !== $alias_key ) {
+				$keys[] = $alias_key;
+			}
+		}
+	}
+
+	return array_values( array_unique( array_filter( $keys ) ) );
+}
+
+/**
+ * Build an index of available attribute thumbnails.
+ *
+ * @return array
+ */
+function ws_get_attribute_thumbnail_index() {
+	static $index = null;
+
+	if ( null !== $index ) {
+		return $index;
+	}
+
+	$index     = array();
+	$directory = trailingslashit( WP_CONTENT_DIR ) . 'attribute-thumbnails';
+
+	if ( ! is_dir( $directory ) || ! is_readable( $directory ) ) {
+		return $index;
+	}
+
+	$files = scandir( $directory );
+	if ( false === $files ) {
+		return $index;
+	}
+
+	foreach ( $files as $file_name ) {
+		if ( '.' === $file_name || '..' === $file_name ) {
+			continue;
+		}
+
+		$file_path = $directory . DIRECTORY_SEPARATOR . $file_name;
+		if ( ! is_file( $file_path ) ) {
+			continue;
+		}
+
+		$base_name = pathinfo( $file_name, PATHINFO_FILENAME );
+		foreach ( ws_get_attribute_thumbnail_lookup_keys( $base_name ) as $lookup_key ) {
+			if ( ! isset( $index[ $lookup_key ] ) ) {
+				$index[ $lookup_key ] = $file_name;
+			}
+		}
+	}
+
+	return $index;
+}
+
+/**
+ * Resolve a thumbnail URL from one or more attribute values.
+ *
+ * @param string ...$values Candidate values.
+ * @return string
+ */
+function ws_get_attribute_thumbnail_url( ...$values ) {
+	$index = ws_get_attribute_thumbnail_index();
+	if ( empty( $index ) ) {
+		return '';
+	}
+
+	foreach ( $values as $value ) {
+		foreach ( ws_get_attribute_thumbnail_lookup_keys( $value ) as $lookup_key ) {
+			if ( empty( $index[ $lookup_key ] ) ) {
+				continue;
+			}
+
+			return content_url( 'attribute-thumbnails/' . rawurlencode( $index[ $lookup_key ] ) );
+		}
+	}
+
+	return '';
+}
+
+/**
+ * Resolve one or more thumbnail images for a swatch value.
+ *
+ * @param string ...$values Candidate values.
+ * @return array
+ */
+function ws_get_attribute_swatch_media( ...$values ) {
+	$values = array_values(
+		array_filter(
+			array_map(
+				static function ( $value ) {
+					return trim( wp_strip_all_tags( (string) $value ) );
+				},
+				(array) $values
+			)
+		)
+	);
+
+	if ( empty( $values ) ) {
+		return array();
+	}
+
+	$direct_match = ws_get_attribute_thumbnail_url( ...$values );
+	if ( '' !== $direct_match ) {
+		return array(
+			array(
+				'image_url' => $direct_match,
+				'label'     => $values[0],
+			),
+		);
+	}
+
+	foreach ( $values as $value ) {
+		$segments = preg_split( '/\s*(?:\/|\+|,)\s*/u', $value );
+		$segments = array_values(
+			array_filter(
+				array_map(
+					static function ( $segment ) {
+						return trim( wp_strip_all_tags( (string) $segment ) );
+					},
+					(array) $segments
+				)
+			)
+		);
+
+		if ( count( $segments ) < 2 ) {
+			continue;
+		}
+
+		$media = array();
+		foreach ( $segments as $segment ) {
+			$image_url = ws_get_attribute_thumbnail_url( $segment );
+			if ( '' === $image_url ) {
+				continue;
+			}
+
+			$media[] = array(
+				'image_url' => $image_url,
+				'label'     => $segment,
+			);
+		}
+
+		if ( count( $media ) >= 2 ) {
+			return $media;
+		}
+	}
+
+	return array();
+}
+
+/**
+ * Render swatch media or a text fallback.
+ *
+ * @param string $label Option label.
+ * @param array  $media Resolved media.
+ * @return string
+ */
+function ws_get_attribute_swatch_media_markup( $label, $media ) {
+	$label = trim( wp_strip_all_tags( (string) $label ) );
+	$media = array_slice( array_values( array_filter( (array) $media ) ), 0, 3 );
+
+	if ( ! empty( $media ) ) {
+		if ( 1 === count( $media ) ) {
+			return '<img src="' . esc_url( $media[0]['image_url'] ) . '" alt="' . esc_attr( $label ) . '" loading="lazy" decoding="async" />';
+		}
+
+		$stack_class = 'ws-attribute-swatch__stack ws-attribute-swatch__stack--' . min( 3, count( $media ) );
+		$html        = '<span class="' . esc_attr( $stack_class ) . '" aria-hidden="true">';
+		foreach ( $media as $segment ) {
+			$html .= '<span class="ws-attribute-swatch__segment">';
+			$html .= '<img src="' . esc_url( $segment['image_url'] ) . '" alt="" loading="lazy" decoding="async" />';
+			$html .= '</span>';
+		}
+		$html .= '</span>';
+
+		return $html;
+	}
+
+	if ( function_exists( 'mb_substr' ) ) {
+		$fallback = mb_substr( $label, 0, 1, 'UTF-8' );
+	} else {
+		$fallback = substr( $label, 0, 1 );
+	}
+
+	return '<span class="ws-attribute-swatch__fallback" aria-hidden="true">' . esc_html( $fallback ) . '</span>';
+}
+
+/**
+ * Collect swatch-ready product attributes.
+ *
+ * @param WC_Product $product Product object.
+ * @return array
+ */
+function ws_get_product_attribute_swatch_groups( $product ) {
+	if ( ! $product instanceof WC_Product ) {
+		return array();
+	}
+
+	$is_variable = $product->is_type( 'variable' );
+	$groups = array();
+
+	foreach ( $product->get_attributes() as $attribute ) {
+		if ( ! $attribute instanceof WC_Product_Attribute || ! $attribute->get_visible() ) {
+			continue;
+		}
+
+		$options    = array();
+		$has_images = false;
+
+		if ( $attribute->is_taxonomy() ) {
+			foreach ( (array) $attribute->get_options() as $option_id ) {
+				$term = get_term( $option_id, $attribute->get_name() );
+				if ( is_wp_error( $term ) || ! $term instanceof WP_Term ) {
+					continue;
+				}
+
+				$media = ws_get_attribute_swatch_media( $term->name, $term->slug );
+				if ( ! empty( $media ) ) {
+					$has_images = true;
+				}
+
+				$options[] = array(
+					'label' => $term->name,
+					'value' => (string) $term->slug,
+					'media' => $media,
+				);
+			}
+		} else {
+			foreach ( (array) $attribute->get_options() as $option_value ) {
+				$option_value = trim( wp_strip_all_tags( (string) $option_value ) );
+				if ( '' === $option_value ) {
+					continue;
+				}
+
+				$media = ws_get_attribute_swatch_media( $option_value );
+				if ( ! empty( $media ) ) {
+					$has_images = true;
+				}
+
+				$options[] = array(
+					'label' => $option_value,
+					'value' => $option_value,
+					'media' => $media,
+				);
+			}
+		}
+
+		if ( ! $has_images || empty( $options ) ) {
+			continue;
+		}
+
+		$groups[] = array(
+			'label'        => wc_attribute_label( $attribute->get_name() ),
+			'options'      => $options,
+			'is_variable'  => $is_variable,
+			'control_name' => $is_variable ? wc_variation_attribute_name( $attribute->get_name() ) : '',
+		);
+	}
+
+	return $groups;
+}
+
+/**
+ * Render attribute swatches on single-product summaries for non-variable products.
+ *
+ * @return void
+ */
+function ws_render_product_attribute_swatches() {
+	global $product;
+
+	if ( ! $product instanceof WC_Product ) {
+		return;
+	}
+
+	$groups = ws_get_product_attribute_swatch_groups( $product );
+	if ( empty( $groups ) ) {
+		return;
+	}
+
+	$is_interactive = $product->is_type( 'variable' );
+	echo '<div class="wm-product-attribute-swatches' . ( $is_interactive ? ' is-interactive' : '' ) . '"' . ( $is_interactive ? ' data-ws-summary-swatches' : '' ) . ' aria-label="' . esc_attr__( 'Product attributes', 'woodmak-store' ) . '">';
+
+	foreach ( $groups as $group ) {
+		echo '<div class="wm-product-attribute-swatches__group">';
+		echo '<span class="wm-product-attribute-swatches__label">' . esc_html( $group['label'] ) . '</span>';
+		echo '<div class="wm-product-attribute-swatches__options">';
+
+		foreach ( $group['options'] as $option ) {
+			echo '<span class="wm-product-attribute-swatches__option">';
+
+			if ( $is_interactive && ! empty( $group['control_name'] ) ) {
+				echo '<button type="button" class="ws-attribute-swatch ws-attribute-swatch--interactive" data-ws-summary-swatch data-ws-target-attribute="' . esc_attr( $group['control_name'] ) . '" data-ws-attribute-value="' . esc_attr( (string) $option['value'] ) . '" title="' . esc_attr( $option['label'] ) . '" aria-label="' . esc_attr( sprintf( __( 'Choose %1$s: %2$s', 'woodmak-store' ), $group['label'], $option['label'] ) ) . '" aria-pressed="false">';
+				echo ws_get_attribute_swatch_media_markup( $option['label'], $option['media'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo '</button>';
+			} else {
+				echo '<span class="ws-attribute-swatch" title="' . esc_attr( $option['label'] ) . '" aria-label="' . esc_attr( $option['label'] ) . '">';
+				echo ws_get_attribute_swatch_media_markup( $option['label'], $option['media'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo '</span>';
+			}
+
+			echo '</span>';
+		}
+
+		echo '</div>';
+		echo '</div>';
+	}
+
+	echo '</div>';
+}
+
+/**
+ * Append image swatches below WooCommerce variation selects.
+ *
+ * @param string $html Existing dropdown HTML.
+ * @param array  $args Dropdown args.
+ * @return string
+ */
+function ws_render_variation_attribute_swatches( $html, $args ) {
+	if ( ! is_product() || empty( $args['options'] ) || empty( $args['attribute'] ) ) {
+		return $html;
+	}
+
+	$product = null;
+	if ( ! empty( $args['product'] ) && $args['product'] instanceof WC_Product ) {
+		$product = $args['product'];
+	}
+
+	if ( ! $product instanceof WC_Product || ! $product->is_type( 'variable' ) ) {
+		return $html;
+	}
+
+	return '<div class="ws-variation-field" data-ws-variation-field>' . $html . '</div>';
+}
+
+/**
+ * Get current cart item count for header UI.
+ *
+ * @return int
+ */
+function ws_get_header_cart_count() {
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		return 0;
+	}
+
+	return max( 0, (int) WC()->cart->get_cart_contents_count() );
+}
+
+/**
+ * Render cart count badge for the header cart button.
+ *
+ * @return string
+ */
+function ws_get_header_cart_count_markup() {
+	$count   = ws_get_header_cart_count();
+	$classes = 'ws-cart-count';
+
+	if ( $count < 1 ) {
+		$classes .= ' is-empty';
+	}
+
+	$count_label = $count > 99 ? '99+' : (string) $count;
+
+	return '<span class="' . esc_attr( $classes ) . '" aria-hidden="true">' . esc_html( $count_label ) . '</span>';
+}
+
+/**
+ * Refresh header cart badge during WooCommerce fragment updates.
+ *
+ * @param array $fragments Existing fragments.
+ * @return array
+ */
+function ws_refresh_header_cart_fragments( $fragments ) {
+	$fragments['.ws-cart-count'] = ws_get_header_cart_count_markup();
+	return $fragments;
 }

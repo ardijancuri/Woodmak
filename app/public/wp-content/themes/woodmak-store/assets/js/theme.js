@@ -170,6 +170,30 @@
     });
   });
 
+  document.querySelectorAll('[data-ws-faq]').forEach(function (faqList) {
+    var items = Array.prototype.slice.call(faqList.querySelectorAll('.ws-home-faq__item'));
+
+    if (!items.length) {
+      return;
+    }
+
+    items.forEach(function (item) {
+      item.addEventListener('toggle', function () {
+        if (!item.open) {
+          return;
+        }
+
+        items.forEach(function (otherItem) {
+          if (otherItem === item || !otherItem.open) {
+            return;
+          }
+
+          otherItem.open = false;
+        });
+      });
+    });
+  });
+
   var initSingleProductGallery = function () {
     if (!document.body.classList.contains('single-product')) {
       return;
@@ -212,5 +236,140 @@
     });
   };
 
+  var dispatchNativeChange = function (element) {
+    if (!element) {
+      return;
+    }
+
+    var changeEvent;
+
+    try {
+      changeEvent = new Event('change', { bubbles: true });
+    } catch (error) {
+      changeEvent = document.createEvent('Event');
+      changeEvent.initEvent('change', true, true);
+    }
+
+    element.dispatchEvent(changeEvent);
+  };
+
+  var initVariationSwatches = function () {
+    if (!document.body.classList.contains('single-product')) {
+      return;
+    }
+
+    document.querySelectorAll('.single-product .product .summary').forEach(function (summary) {
+      var form = summary.querySelector('form.variations_form');
+      var swatchPanel = summary.querySelector('[data-ws-summary-swatches]');
+
+      if (!form || !swatchPanel) {
+        return;
+      }
+
+      var swatches = Array.prototype.slice.call(swatchPanel.querySelectorAll('[data-ws-summary-swatch]'));
+
+      if (!swatches.length) {
+        return;
+      }
+
+      var getSelect = function (targetName) {
+        if (!targetName) {
+          return null;
+        }
+
+        return form.querySelector('select[name="' + targetName + '"]');
+      };
+
+      var syncAttribute = function (targetName) {
+        var select = getSelect(targetName);
+
+        if (!select) {
+          return;
+        }
+
+        var enabledOptions = {};
+
+        Array.prototype.slice.call(select.options).forEach(function (option) {
+          if (!option.value) {
+            return;
+          }
+
+          enabledOptions[option.value] = !option.disabled;
+        });
+
+        swatches.forEach(function (swatch) {
+          if (swatch.getAttribute('data-ws-target-attribute') !== targetName) {
+            return;
+          }
+
+          var value = swatch.getAttribute('data-ws-attribute-value');
+          var isActive = value === select.value;
+          var isEnabled = Object.prototype.hasOwnProperty.call(enabledOptions, value) ? enabledOptions[value] : false;
+
+          swatch.classList.toggle('is-active', isActive);
+          swatch.disabled = !isEnabled;
+          swatch.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+          swatch.setAttribute('aria-disabled', isEnabled ? 'false' : 'true');
+        });
+      };
+
+      var syncAllAttributes = function () {
+        var seen = {};
+
+        swatches.forEach(function (swatch) {
+          var targetName = swatch.getAttribute('data-ws-target-attribute');
+
+          if (!targetName || seen[targetName]) {
+            return;
+          }
+
+          seen[targetName] = true;
+          syncAttribute(targetName);
+        });
+      };
+
+      swatches.forEach(function (swatch) {
+        swatch.addEventListener('click', function (event) {
+          var targetName = swatch.getAttribute('data-ws-target-attribute');
+          var select = getSelect(targetName);
+
+          event.preventDefault();
+
+          if (!select || swatch.disabled) {
+            return;
+          }
+
+          select.value = swatch.getAttribute('data-ws-attribute-value');
+          dispatchNativeChange(select);
+          window.setTimeout(syncAllAttributes, 0);
+          window.setTimeout(syncAllAttributes, 60);
+        });
+      });
+
+      form.addEventListener('change', function (event) {
+        if (!event.target || event.target.tagName !== 'SELECT') {
+          return;
+        }
+
+        window.setTimeout(syncAllAttributes, 0);
+        window.setTimeout(syncAllAttributes, 60);
+      });
+
+      form.addEventListener('click', function (event) {
+        if (!event.target.closest('.reset_variations')) {
+          return;
+        }
+
+        window.setTimeout(syncAllAttributes, 0);
+        window.setTimeout(syncAllAttributes, 60);
+      });
+
+      syncAllAttributes();
+      window.setTimeout(syncAllAttributes, 60);
+      window.setTimeout(syncAllAttributes, 180);
+    });
+  };
+
   initSingleProductGallery();
+  initVariationSwatches();
 })();

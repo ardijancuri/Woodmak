@@ -24,7 +24,9 @@
 }
 
 .ws-checkout-col--review {
-  background: #f9f9f9;
+  border: 0;
+  padding: 0;
+  background: transparent;
 }
 
 .role-b2b-wholesale .ws-checkout-col--review {
@@ -116,8 +118,129 @@
   box-shadow: none;
 }
 
+.woocommerce-checkout-review-order-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.woocommerce-checkout-review-order-table th:first-child,
+.woocommerce-checkout-review-order-table td:first-child {
+  width: 60%;
+}
+
+.woocommerce-checkout-review-order-table th:last-child,
+.woocommerce-checkout-review-order-table td:last-child {
+  width: 40%;
+}
+
+.woocommerce-checkout-review-order-table tbody .product-name {
+  font-size: 0.93rem;
+  line-height: 1.42;
+}
+
+.woocommerce-checkout-review-order-table .woocommerce-shipping-totals th,
+.woocommerce-checkout-review-order-table .woocommerce-shipping-totals td {
+  vertical-align: top;
+}
+
+.woocommerce-checkout-review-order-table .woocommerce-shipping-methods {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.woocommerce-checkout-review-order-table .woocommerce-shipping-methods li {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.65rem;
+}
+
+.woocommerce-checkout-review-order-table .woocommerce-shipping-methods input.shipping_method {
+  margin: 0.22rem 0 0;
+}
+
+.woocommerce-checkout-review-order-table .woocommerce-shipping-methods label {
+  display: grid;
+  gap: 0.18rem;
+  margin: 0;
+  color: #111;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.woocommerce-checkout-review-order-table .woocommerce-shipping-methods label .amount {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.woocommerce-checkout-review-order-table .woocommerce-shipping-methods label .tax_label {
+  display: block;
+  color: #666;
+  font-size: 0.74rem;
+  font-weight: 500;
+}
+
 @media (max-width: 980px) {
   .ws-checkout-columns {
     grid-template-columns: 1fr;
+  }
+
+  .ws-checkout-col {
+    padding: 0.8rem;
+  }
+
+  .ws-checkout-col--review {
+    padding: 0;
+  }
+
+  .ws-checkout-col h3 {
+    font-size: 0.86rem;
+  }
+
+  .wm-checkout-note,
+  .woocommerce-checkout .woocommerce-info,
+  .woocommerce-checkout .woocommerce-error,
+  .woocommerce-checkout .woocommerce-message {
+    font-size: 0.84rem;
+  }
+
+  .woocommerce-checkout .woocommerce form .form-row label,
+  .woocommerce-checkout .woocommerce-checkout-review-order-table th,
+  .woocommerce-checkout .woocommerce-checkout-review-order-table td,
+  .woocommerce-checkout #payment,
+  .woocommerce-checkout #payment label,
+  .woocommerce-checkout #payment div.payment_box {
+    font-size: 0.86rem;
+  }
+
+  .woocommerce-checkout .woocommerce form .form-row input.input-text,
+  .woocommerce-checkout .woocommerce form .form-row textarea,
+  .woocommerce-checkout .select2-container--default .select2-selection--single,
+  .woocommerce-checkout .select2-container--default .select2-selection--single .select2-selection__rendered {
+    font-size: 0.9rem;
+  }
+
+  .woocommerce-checkout-review-order-table tbody .product-name {
+    font-size: 0.84rem;
+  }
+
+  .woocommerce-checkout-review-order-table .woocommerce-shipping-methods label,
+  .woocommerce-checkout-review-order-table .woocommerce-shipping-methods label .amount {
+    font-size: 0.76rem;
+  }
+
+  .woocommerce-checkout-review-order-table .woocommerce-shipping-methods label .tax_label {
+    font-size: 0.66rem;
+  }
+
+  .woocommerce-checkout #payment #place_order {
+    font-size: 0.72rem;
   }
 }
